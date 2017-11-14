@@ -1,5 +1,7 @@
+# make code as python 3 compatible as possible
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import argparse
-import operator
 import os
 
 import parsimonious.grammar
@@ -106,8 +108,7 @@ number = ~"[0-9]+"
     bindings = get_bindings(result)
     sort_key = lambda k: (k['mode'], k['key'])
     for binding in sorted(bindings, key=sort_key):
-
-        print binding['mode'], binding['key'], binding['action_text']
+        print(binding['mode'], binding['key'], binding['action_text'])
 
 def get_bindings(ast, mode_name=None):
     if ast.expr_name == 'mode_block':
@@ -191,6 +192,6 @@ def parse_binding(ast, mode_name):
 
 
 def dump_tree(ast, depth=0):
-    print '    ' * depth + ast.expr_name
+    print('    ' * depth + ast.expr_name)
     for x in ast.children:
         dump_tree(x, depth=depth+1)

@@ -1,5 +1,5 @@
 # i3parse
-A functional but not feature-complete parser for [i3wm's](https://github.com/i3/i3) config file. Originally written for the purposes of querying keybindings, but it can likely quickly be patched to support new features.
+A functional but not feature-complete parser for [i3wm's](https://github.com/i3/i3) config file. Originally written for the purposes of querying keybindings, but it can likely be patched to support new features.
 
 # Usage
 
