@@ -1,6 +1,14 @@
 import setuptools
 import os
 
+try:
+    # setuptools entry point is slow
+    #  if we have festentrypoint use
+    #  a fast entry point
+    import fastentrypoint
+except ImportError:
+    pass
+
 HERE = os.path.dirname(__file__)
 
 setuptools.setup(
