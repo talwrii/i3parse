@@ -1,8 +1,14 @@
 # i3parse
 A functional but not feature-complete parser for [i3wm's](https://github.com/i3/i3) config file. Originally written for the purposes of querying keybindings, but it can likely be patched to support new features.
 
-# Usage
+# Installation
+```
+pip install --upgrade git+https://github.com/talwrii/i3parse#egg=i3parse
+```
 
+Compatible with Python2 and Python3.
+
+# Usage
 ```
 # List keybindings
 > i3parse bindings
