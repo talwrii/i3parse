@@ -1,21 +1,24 @@
 # make code as python 3 compatible as possible
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import argparse
 import os
-
 import parsimonious.grammar
 
 DEFAULT_FILE = os.path.join(os.environ['HOME'], '.i3/config')
 
-PARSER = argparse.ArgumentParser(description='')
-parsers = PARSER.add_subparsers(dest='command')
-binding_parser = parsers.add_parser('bindings', help='Show bindings')
-binding_parser.add_argument('file', type=str, help='', nargs='?', default=DEFAULT_FILE)
-binding_parser.add_argument('--mode', '-m', type=str, help='Only should bindings for this mode')
+def build_parser():
+    parser = argparse.ArgumentParser(description='')
+    parsers = parser.add_subparsers(dest='command')
+    binding_parser = parsers.add_parser('bindings', help='Show bindings')
+    binding_parser.add_argument('file', type=str, help='', nargs='?', default=DEFAULT_FILE)
+    binding_parser.add_argument('--mode', '-m', type=str, help='Only should bindings for this mode')
+    binding_parser.add_argument('--type', '-t', type=str, choices=get_bind_types().values(), help='Only show bindings of this type')
+    return parser
 
 def main():
-    args = PARSER.parse_args()
+    args = build_parser().parse_args()
     if args.command == 'bindings':
         with open(args.file) as stream:
             input_string = stream.read()
@@ -28,13 +31,17 @@ def main():
         for binding in sorted(bindings, key=sort_key):
             if args.mode and args.mode != binding['mode']:
                 continue
-            print(binding['mode'] or 'default', binding['key'], binding['action_text'])
+
+            if args.type is not None:
+                if binding['type'] != args.type:
+                    continue
+
+            print(binding['mode'], binding['key'], binding['action_text'])
 
     else:
         raise ValueError(args.bindings)
 
-
-def parse(input):
+def build_grammar():
     grammar = parsimonious.grammar.Grammar(r'''
 result = ( block / line ) *
 i3_toggle_fullscreen = "fullscreen" space "toggle"
@@ -49,7 +56,6 @@ window_event = "for_window" space window_specifier space bind_action
 window_specifier = "[" comma_list "]"
 comma_list = key_value / (comma_list space "," space key_value)
 key_value = variable "=" quoted_string
-
 
 lines = line *
 line = comment / statement
@@ -70,7 +76,6 @@ key = word
 
 scratch_show = "scratchpad" space "show"
 scratch_hide = "scratchpad" space "hide"
-
 
 status_command = "status_command" space any_chars
 i3_move_action = "move" ( space ("container" / "window" / "workspace") space "to" space ("output" / "mark" / "workspace") ) ? space move_target
@@ -113,10 +118,42 @@ measurement = ((axiomatic_measurement space "or" space measurement) / axiomatic_
 axiomatic_measurement = number space ("ppt" / "px")
 number = ~"[0-9]+"
 ''')
+    return grammar
 
-    return grammar.parse(input)
+def parse(input_string):
+    return build_grammar().parse(input_string)
 
-def get_bindings(ast, mode_name=None):
+_get_bind_types = None
+def get_bind_types():
+    global _get_bind_types
+    if _get_bind_types is None:
+        ACTION_TYPES = dict(
+            exec_action='exec',
+            i3_toggle_fullscreen='window',
+            mode_action='mode',
+            focus_action='window',
+            i3_action='window',
+            i3_move_action='window',
+            i3_split_action='window',
+            i3_layout_action='window',
+            i3_toggle_float='window',
+            i3_workspace_command='window',
+            i3_resize_action='window',
+            scratch_show='window',
+        )
+        grammar = build_grammar()
+        actions = [m.name for m in grammar['bind_action'].members]
+        found_types = set(ACTION_TYPES[a] for a in actions)
+        if found_types != set(ACTION_TYPES.values()):
+            raise ValueError(found_types - set(ACTION_TYPES.values()))
+        _get_bind_types = ACTION_TYPES
+
+    return _get_bind_types
+
+
+
+
+def get_bindings(ast, mode_name='default'):
     if ast.expr_name == 'mode_block':
         _, _, mode_name_node, _ = ast.children
         _, mode_name, _ = [c.text for c in mode_name_node.children]
@@ -131,6 +168,7 @@ def get_bindings(ast, mode_name=None):
         return bindings
 
 def parse_binding(ast, mode_name):
+    bind_types = get_bind_types()
     _, release, _, key_node, _, action = ast.children
     key = key_node.text
     i3_complex_action = move_command = i3_action = mode = command = None
@@ -187,6 +225,7 @@ def parse_binding(ast, mode_name):
         key=key,
         command=command,
         target_mode=mode,
+        type=bind_types[specific_action.expr_name],
         i3_action=i3_action,
         i3_complex_action=i3_complex_action,
         action_text=action_text,

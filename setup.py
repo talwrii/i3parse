@@ -1,13 +1,16 @@
-import setuptools
-import os
 
+import sys
 try:
     # setuptools entry point is slow
     #  if we have festentrypoint use
     #  a fast entry point
-    import fastentrypoint
+    import fastentrypoints
 except ImportError:
+    sys.stdout.write('Not using fastentrypoints\n')
     pass
+
+import setuptools
+import os
 
 HERE = os.path.dirname(__file__)
 
