@@ -12,13 +12,24 @@ PARSER = argparse.ArgumentParser(description='')
 parsers = PARSER.add_subparsers(dest='command')
 binding_parser = parsers.add_parser('bindings', help='Show bindings')
 binding_parser.add_argument('file', type=str, help='', nargs='?', default=DEFAULT_FILE)
+binding_parser.add_argument('--mode', '-m', type=str, help='Only should bindings for this mode')
 
 def main():
     args = PARSER.parse_args()
     if args.command == 'bindings':
         with open(args.file) as stream:
             input_string = stream.read()
-            parse(input_string)
+            ast = parse(input_string)
+
+        # dump_tree(ast)
+
+        bindings = get_bindings(ast)
+        sort_key = lambda k: (k['mode'], k['key'])
+        for binding in sorted(bindings, key=sort_key):
+            if args.mode and args.mode != binding['mode']:
+                continue
+            print(binding['mode'] or 'default', binding['key'], binding['action_text'])
+
     else:
         raise ValueError(args.bindings)
 
@@ -103,12 +114,7 @@ axiomatic_measurement = number space ("ppt" / "px")
 number = ~"[0-9]+"
 ''')
 
-    result = grammar.parse(input)
-    #dump_tree(result)
-    bindings = get_bindings(result)
-    sort_key = lambda k: (k['mode'], k['key'])
-    for binding in sorted(bindings, key=sort_key):
-        print(binding['mode'], binding['key'], binding['action_text'])
+    return grammar.parse(input)
 
 def get_bindings(ast, mode_name=None):
     if ast.expr_name == 'mode_block':
