@@ -23,26 +23,10 @@ def main():
 
 def parse(input):
     grammar = parsimonious.grammar.Grammar(r'''
-config = statement_complex_config / comment_complex_config / empty_config
-statement_complex_config = statement "\n" config
-empty_config = ""
-statement = force_wrapping / set_statement
-force_wrapping = "force_focus_wrapping" space yes_no
-set_statement = "set " word " " word
-word = ~"[^() ]+"
-
-yes_no = "yes" / "no"
-rest_of_line = ~"[A-Za-z ]*"
-comment_complex_config =  comment "\n" config
-space = " "
-comment = octo rest_of_line
-octo = ~"\#"
-
-    ''')
-
-    grammar = parsimonious.grammar.Grammar(r'''
-
 result = ( block / line ) *
+i3_toggle_fullscreen = "fullscreen" space "toggle"
+
+bind_action = exec_action / i3_toggle_fullscreen / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_toggle_float / i3_workspace_command / i3_resize_action / scratch_show
 block = mode_block / bar_block
 mode_block = "mode" space quoted_string quote_block
 bar_block = "bar" space quote_block
@@ -70,24 +54,23 @@ workspace_buttons = "workspace_buttons" space yes_no
 empty_statement = ""
 bind_statement = "bindsym" (space "--release") ? space key space bind_action
 key = word
-bind_action = exec_action / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_toggle_float / i3_workspace_command / i3_resize_action / scratch_show
 
 scratch_show = "scratchpad" space "show"
 scratch_hide = "scratchpad" space "hide"
 
 
 status_command = "status_command" space any_chars
-i3_move_action = "move" ( space ("container" / "window" / "workspace") space "to" space ("output" / "mark") ) ? space move_target
-move_target = direction / "scratchpad"
-i3_workspace_command = "workspace" space (quoted_string / workspace_sentinels)
+i3_move_action = "move" ( space ("container" / "window" / "workspace") space "to" space ("output" / "mark" / "workspace") ) ? space move_target
+move_target = direction / "scratchpad" / number
+i3_workspace_command = "workspace" space (quoted_string / workspace_sentinels / number)
 workspace_sentinels = "back_and_forth"
 i3_toggle_float = "floating" space "toggle"
 i3_layout_action = "layout" space layout
-layout = "stacking" / "tabbed" / "default"
+layout = "stacking" / "tabbed" / "default" / ( "toggle" space "split" )
 mode_action = "mode" space quoted_string
 focus_action = "focus" ( space "output" ) ? space (direction / focus_mode / focus_location)
 focus_mode = "mode_toggle"
-focus_location = "parent"
+focus_location = "parent" / "child"
 direction = "left" / "right" / "up" / "down"
 i3_action = "kill" / "fullscreen" / "reload" / "restart" / "exit"
 i3_split_action = "split" space split_direction
@@ -173,6 +156,8 @@ def parse_binding(ast, mode_name):
         workspace_target_name = workspace_name = None
         if workspace_target.expr_name == 'quoted_string':
             _, workspace_name, _ = workspace_target.children
+        elif workspace_target.expr_name == 'number':
+            workspace_name = int(workspace_target.text)
         elif workspace_target.expr_name == 'workspace_sentinels':
             workspace_target_name = workspace_target.text
         else:
@@ -185,6 +170,8 @@ def parse_binding(ast, mode_name):
         i3_complex_action = dict(action='resize')
     elif specific_action.expr_name == 'scratch_show':
         i3_action = 'show_scratchpad'
+    elif specific_action.expr_name == 'i3_toggle_fullscreen':
+        i3_action = 'toggle_fullscreen'
     else:
         raise ValueError(specific_action.expr_name)
 
