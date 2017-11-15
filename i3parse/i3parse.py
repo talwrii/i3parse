@@ -3,23 +3,117 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import argparse
+import collections
+import itertools
 import os
+
 import parsimonious.grammar
 
+import graphviz
+
 DEFAULT_FILE = os.path.join(os.environ['HOME'], '.i3/config')
+
+def file_option(parser):
+    parser.add_argument('file', type=str, help='', nargs='?', default=DEFAULT_FILE)
+
+def dump_graph(x):
+    raise NotImplementedError()
+
+
 
 def build_parser():
     parser = argparse.ArgumentParser(description='')
     parsers = parser.add_subparsers(dest='command')
+
+    mode_graph = parsers.add_parser('mode-graph', help='Show the keybinding modes and how to traverse them')
+    file_option(mode_graph)
+    mode_graph.add_argument('--drop-key', '-d', help='Ignore this key in all modes', type=str, action='append')
+    mode_graph.add_argument('--unicode', '-u', action='store_true', default=False, help='Compress with unicode')
+
     binding_parser = parsers.add_parser('bindings', help='Show bindings')
-    binding_parser.add_argument('file', type=str, help='', nargs='?', default=DEFAULT_FILE)
+    file_option(binding_parser)
     binding_parser.add_argument('--mode', '-m', type=str, help='Only should bindings for this mode')
     binding_parser.add_argument('--type', '-t', type=str, choices=get_bind_types().values(), help='Only show bindings of this type')
     return parser
 
+def mode_graph(ast, ignore_keys=None):
+    if ignore_keys is None:
+        ignore_keys = set()
+    ignore_keys = set(ignore_keys)
+
+    modes = get_modes(ast)
+    graph = collections.defaultdict(list)
+
+    for mode in modes:
+        graph[mode] = []
+
+    bindings = get_bindings(ast)
+    for b in bindings:
+        if b['type'] == 'mode':
+            if b['key'] in ignore_keys:
+                continue
+            graph[b['mode']].append((b['key'], b['mode_target']))
+    return graph
+
+def compress_binding(binding):
+    output = binding.lower()
+    output = output.replace('$mod', '$')
+    output = output.replace('mod1', 'M')
+    output = output.replace('super', 'S')
+    output = output.replace('shift', 's')
+    return output
+
+def dump_graph(graph, key_formatter=compress_binding):
+    graphviz_graph = graphviz.Digraph()
+    for node, neighbours in graph.items():
+        graphviz_graph.node(node)
+        for k, neighbour in neighbours:
+            graphviz_graph.edge(node, neighbour, label=key_formatter(k))
+    return graphviz_graph.source
+
+def diacriticize_binding(s):
+    "'Creatively' compress binding with diacritics"
+    parts = s.split('+')
+    key = parts[-1].lower()
+    shift = modifier = sup = mod1 = False
+    for part in parts[:-1]:
+        if part.lower() == 'mod1':
+            mod1 = True
+        if part == 'S':
+            sup = True
+        if part.lower() == '$mod':
+            modifier = True
+        if part.lower() == 'shift':
+            shift = True
+
+    combining_s = u"\u1de4"
+    subscript_m = u'\u2098'
+
+    output = key
+    if shift:
+        output = output.upper()
+    if sup:
+        output = output + super_s
+    if mod1:
+        output = output + subscript_m
+    if modifier:
+        output = '$' + output
+
+    return output
+
+
 def main():
     args = build_parser().parse_args()
-    if args.command == 'bindings':
+    if args.command == 'mode-graph':
+        with open(args.file) as stream:
+            input_string = stream.read()
+            ast = parse(input_string)
+
+        graph = mode_graph(ast, ignore_keys=args.drop_key)
+        key_formatter = diacriticize_binding if args.unicode else compress_binding
+        print(dump_graph(graph, key_formatter))
+
+    elif args.command == 'bindings':
         with open(args.file) as stream:
             input_string = stream.read()
             ast = parse(input_string)
@@ -151,13 +245,23 @@ def get_bind_types():
     return _get_bind_types
 
 
+def get_modes(ast):
+    if ast.expr_name == 'mode_block':
+        _, _, name_node, _ = ast.children
+        if name_node.expr_name == 'quoted_string':
+            _, string_node, _ = name_node
+            return [string_node.text]
+        else:
+            raise ValueError(name_node.expr_name)
+    else:
+        return list(itertools.chain.from_iterable(get_modes(child) for child in ast.children))
+
 
 
 def get_bindings(ast, mode_name='default'):
     if ast.expr_name == 'mode_block':
         _, _, mode_name_node, _ = ast.children
         _, mode_name, _ = [c.text for c in mode_name_node.children]
-
 
     if ast.expr_name == 'bind_statement':
         return [parse_binding(ast, mode_name)]
@@ -231,6 +335,7 @@ def parse_binding(ast, mode_name):
         action_text=action_text,
         text=ast.text,
         release=release,
+        mode_target=mode,
         mode=mode_name,
         )
 

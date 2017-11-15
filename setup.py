@@ -32,5 +32,5 @@ setuptools.setup(
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)"
     ],
     test_suite='nose.collector',
-    install_requires=['parsimonious']
+    install_requires=['parsimonious', 'graphviz']
 )

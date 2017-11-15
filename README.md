@@ -13,6 +13,9 @@ Compatible with Python2 and Python3.
 # List keybindings
 > i3parse bindings
 
+# Draw a graph of keybinding modes (for graphviz)
+> i3parse mode-graph
+
 ```
 
 # Caveats
