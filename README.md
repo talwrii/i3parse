@@ -1,5 +1,5 @@
 # i3parse
-A functional but not feature-complete parser for [i3wm's](https://github.com/i3/i3) config file. Originally written for the purposes of querying keybindings, but it can likely be patched to support new features.
+A functional but not feature-complete parser for [i3wm's](https://github.com/i3/i3) config file. Originally written for the purposes of querying keybindings, but it can likely be patched to support new features. These tools may be profitably combined with tools like [rofi](https://github.com/DaveDavenport/rofi) in keybindings for self-documentation.
 
 # Installation
 ```
@@ -15,7 +15,6 @@ Compatible with Python2 and Python3.
 
 # Draw a graph of keybinding modes (for graphviz)
 > i3parse mode-graph
-
 ```
 
 # Caveats
