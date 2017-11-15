@@ -240,7 +240,7 @@ def get_bind_types():
             i3_split_action='window',
             i3_layout_action='window',
             i3_toggle_float='window',
-            i3_workspace_command='window',
+            i3_workspace_command='workspace',
             i3_resize_action='window',
             scratch_show='window',
         )
