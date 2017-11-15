@@ -25,6 +25,9 @@ def build_parser():
     parser = argparse.ArgumentParser(description='')
     parsers = parser.add_subparsers(dest='command')
 
+    modes = parsers.add_parser('modes', help='Show the keybinding modes and how to traverse them')
+    file_option(modes)
+
     mode_graph = parsers.add_parser('mode-graph', help='Show the keybinding modes and how to traverse them')
     file_option(mode_graph)
     mode_graph.add_argument('--drop-key', '-d', help='Ignore this key in all modes', type=str, action='append')
@@ -112,7 +115,13 @@ def main():
         graph = mode_graph(ast, ignore_keys=args.drop_key)
         key_formatter = diacriticize_binding if args.unicode else compress_binding
         print(dump_graph(graph, key_formatter))
+    elif args.command == 'modes':
+        with open(args.file) as stream:
+            input_string = stream.read()
+            ast = parse(input_string)
 
+        for mode in sorted(get_modes(ast)):
+            print(mode)
     elif args.command == 'bindings':
         with open(args.file) as stream:
             input_string = stream.read()
