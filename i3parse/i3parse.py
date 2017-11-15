@@ -36,7 +36,7 @@ def build_parser():
     binding_parser = parsers.add_parser('bindings', help='Show bindings')
     file_option(binding_parser)
     binding_parser.add_argument('--mode', '-m', type=str, help='Only should bindings for this mode')
-    binding_parser.add_argument('--type', '-t', type=str, choices=get_bind_types().values(), help='Only show bindings of this type')
+    binding_parser.add_argument('--type', '-t', type=str, choices=sorted(set(get_bind_types().values())), help='Only show bindings of this type')
     return parser
 
 def mode_graph(ast, ignore_keys=None):
