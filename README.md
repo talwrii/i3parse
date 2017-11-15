@@ -28,3 +28,8 @@ This parser was derived from features in the author's configuration file, rather
 In the case of parse errors, the author has found it helpful to copy the error-causing configuration and repeatedly delete lines until a minimal error-causing configuration is found. The grammar rules can then be reordered so that the most specific rule that should match is being used (the first rule in the grammar definition is the rule that the input file should match). Rules can further be commented out with `#` and replaced with even simpler rules. Having such a minimised problem helps one debug.
 
 `test.sh` runs some course tests (ensuring installation works and *i3parse* runs on sample input).
+
+# Attribution and prior work
+* This tool was very much influenced by [emacs](https://www.gnu.org/software/emacs/) with its features for self documentation.
+* The [parsimonious library](https://github.com/erikrose/parsimonious) is used for parsing.
+* [i3wm question regarding programmatically querying keybinding ](https://faq.i3wm.org/question/5483/how-can-i-list-all-xorg-and-i3-keybindings-currently-in-effect/index.html)
