@@ -5,17 +5,19 @@ from __future__ import (absolute_import, division, print_function,
 import argparse
 import collections
 import itertools
+import json
 import os
 
-import parsimonious.grammar
-
 import graphviz
+import parsimonious.grammar
 
 DEFAULT_FILE = os.path.join(os.environ['HOME'], '.i3/config')
 
 def file_option(parser):
     parser.add_argument('file', type=str, help='', nargs='?', default=DEFAULT_FILE)
 
+def json_option(parser):
+    parser.add_argument('--json', action='store_true', help='Output in machine readable json')
 
 def build_parser():
     parser = argparse.ArgumentParser(description='')
@@ -33,6 +35,7 @@ def build_parser():
     file_option(binding_parser)
     binding_parser.add_argument('--mode', '-m', type=str, help='Only should bindings for this mode')
     binding_parser.add_argument('--type', '-t', type=str, choices=sorted(set(get_bind_types().values())), help='Only show bindings of this type')
+    json_option(binding_parser)
     return parser
 
 def mode_graph(ast, ignore_keys=None):
@@ -135,7 +138,14 @@ def main():
                 if binding['type'] != args.type:
                     continue
 
-            print(binding['mode'], binding['key'], binding['action_text'])
+            if args.json:
+                workspace = binding.get('i3_complex_action', dict()).get('workspace')
+                data = dict(mode=binding['mode'], key=binding['key'], text=binding['action_text'], action_type=binding['type'])
+                if workspace is not None:
+                    data['workspace'] = workspace
+                print(json.dumps(data))
+            else:
+                print(binding['mode'], binding['key'], binding['action_text'])
 
     else:
         raise ValueError(args.bindings)
@@ -310,6 +320,7 @@ def parse_binding(ast, mode_name):
         workspace_target_name = workspace_name = None
         if workspace_target.expr_name == 'quoted_string':
             _, workspace_name, _ = workspace_target.children
+            workspace_name = workspace_name.text
         elif workspace_target.expr_name == 'number':
             workspace_name = int(workspace_target.text)
         elif workspace_target.expr_name == 'workspace_sentinels':
@@ -343,7 +354,6 @@ def parse_binding(ast, mode_name):
         mode_target=mode,
         mode=mode_name,
         )
-
 
 
 def dump_tree(ast, depth=0):
