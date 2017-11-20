@@ -16,10 +16,6 @@ DEFAULT_FILE = os.path.join(os.environ['HOME'], '.i3/config')
 def file_option(parser):
     parser.add_argument('file', type=str, help='', nargs='?', default=DEFAULT_FILE)
 
-def dump_graph(x):
-    raise NotImplementedError()
-
-
 
 def build_parser():
     parser = argparse.ArgumentParser(description='')
