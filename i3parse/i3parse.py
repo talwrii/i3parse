@@ -187,7 +187,7 @@ scratch_show = "scratchpad" space "show"
 scratch_hide = "scratchpad" space "hide"
 
 status_command = "status_command" space any_chars
-i3_move_action = "move" ( space ("container" / "window" / "workspace") space "to" space ("output" / "mark" / "workspace") ) ? space move_target
+i3_move_action = "move" (space ("container" / "window" / "workspace") ) ? ( space  "to" ) ? ( space ( "output" / "mark" / "workspace" ) ) ? space move_target
 move_target = direction / "scratchpad" / number
 i3_workspace_command = "workspace" space (quoted_string / workspace_sentinels / number)
 workspace_sentinels = "back_and_forth"
@@ -230,7 +230,8 @@ number = ~"[0-9]+"
     return grammar
 
 def parse(input_string):
-    return build_grammar().parse(input_string)
+    grammar = build_grammar()
+    return grammar.parse(input_string)
 
 _get_bind_types = None
 def get_bind_types():
