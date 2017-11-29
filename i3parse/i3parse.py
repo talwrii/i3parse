@@ -31,6 +31,9 @@ def build_parser():
     mode_graph.add_argument('--drop-key', '-d', help='Ignore this key in all modes', type=str, action='append')
     mode_graph.add_argument('--unicode', '-u', action='store_true', default=False, help='Compress with unicode')
 
+    validate_parser = parsers.add_parser('validate', help='Validate key-bindings file (check if it parses)')
+    file_option(validate_parser)
+
     binding_parser = parsers.add_parser('bindings', help='Show bindings')
     file_option(binding_parser)
     binding_parser.add_argument('--mode', '-m', type=str, help='Only should bindings for this mode')
@@ -121,6 +124,10 @@ def main():
 
         for mode in sorted(get_modes(ast)):
             print(mode)
+    elif args.command == 'validate':
+        with open(args.file) as stream:
+            input_string = stream.read()
+            ast = parse(input_string)
     elif args.command == 'bindings':
         with open(args.file) as stream:
             input_string = stream.read()
