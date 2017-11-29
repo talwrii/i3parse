@@ -162,7 +162,6 @@ def build_grammar():
 result = ( block / line ) *
 i3_toggle_fullscreen = "fullscreen" space "toggle"
 
-bind_action = exec_action / i3_toggle_fullscreen / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_toggle_float / i3_workspace_command / i3_resize_action / scratch_show
 block = mode_block / bar_block
 mode_block = "mode" space quoted_string quote_block
 bar_block = "bar" space quote_block
@@ -176,7 +175,7 @@ key_value = variable "=" quoted_string
 lines = line *
 line = comment / statement
 statement = ( space * ) statement_no_line newline
-statement_no_line = bind_statement / force_wrapping / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / empty_statement
+statement_no_line = bind_statement / force_wrapping / focus_follows_mouse /  set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / empty_statement
 
 popup_fullscreen_action = "popup_during_fullscreen" space popup_action
 
@@ -188,6 +187,8 @@ workspace_buttons = "workspace_buttons" space yes_no
 
 empty_statement = ""
 bind_statement = "bindsym" (space "--release") ? space key space bind_action
+bind_action = exec_action / i3_toggle_fullscreen / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_toggle_float / i3_workspace_command / i3_resize_action / scratch_show
+
 key = word
 
 scratch_show = "scratchpad" space "show"
@@ -220,6 +221,7 @@ any_chars = ~".*"
 octo = ~"\#"
 newline = ~"\n*"
 force_wrapping = "force_focus_wrapping" space yes_no
+focus_follows_mouse = "focus_follows_mouse" space yes_no
 yes_no = "yes" / "no"
 space = ~"[ \t]+"
 set_statement = "set " word " " word
