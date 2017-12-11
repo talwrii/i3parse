@@ -187,7 +187,7 @@ workspace_buttons = "workspace_buttons" space yes_no
 
 empty_statement = ""
 bind_statement = "bindsym" (space "--release") ? space key space bind_action
-bind_action = exec_action / i3_toggle_fullscreen / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_toggle_float / i3_workspace_command / i3_resize_action / scratch_show
+bind_action = exec_action / i3_toggle_fullscreen / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_modify_float / i3_workspace_command / i3_resize_action / scratch_show
 
 key = word
 
@@ -199,7 +199,7 @@ i3_move_action = "move" (space ("container" / "window" / "workspace") ) ? ( spac
 move_target = direction / "scratchpad" / number
 i3_workspace_command = "workspace" space (quoted_string / workspace_sentinels / number)
 workspace_sentinels = "back_and_forth"
-i3_toggle_float = "floating" space "toggle"
+i3_modify_float = "floating" space ( "enable" / "toggle" / "disable") (space "border" space "pixel" space number)?
 i3_layout_action = "layout" space layout
 layout = "stacking" / "tabbed" / "default" / ( "toggle" space "split" )
 mode_action = "mode" space quoted_string
@@ -255,7 +255,7 @@ def get_bind_types():
             i3_move_action='window',
             i3_split_action='window',
             i3_layout_action='window',
-            i3_toggle_float='window',
+            i3_modify_float='window',
             i3_workspace_command='workspace',
             i3_resize_action='window',
             scratch_show='window',
@@ -319,8 +319,8 @@ def parse_binding(ast, mode_name):
         i3_complex_action = dict(output=output.text, direction=direction.text, action='focus')
     elif specific_action.expr_name == 'i3_action':
         i3_action = specific_action.text
-    elif specific_action.expr_name == 'i3_toggle_float':
-        i3_action = 'toggle_float'
+    elif specific_action.expr_name == 'i3_modify_float':
+        i3_action = 'modify_float'
     elif specific_action.expr_name == 'i3_layout_action':
         _, _, layout = specific_action.children
         i3_complex_action = dict(action='layout', layout=layout.text)
