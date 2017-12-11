@@ -146,8 +146,8 @@ def main():
                     continue
 
             if args.json:
-                workspace = binding.get('i3_complex_action', dict()).get('workspace')
-                data = dict(mode=binding['mode'], key=binding['key'], text=binding['action_text'], action_type=binding['type'])
+                workspace = (binding.get('i3_complex_action') or dict()).get('workspace')
+                data = dict(mode=binding['mode'], key=binding['key'], text=binding['action_text'], action_type=binding['type'], line=binding['line'])
                 if workspace is not None:
                     data['workspace'] = workspace
                 print(json.dumps(data))
