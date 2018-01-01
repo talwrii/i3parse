@@ -15,6 +15,16 @@ Compatible with Python2 and Python3.
 
 # Draw a graph of keybinding modes (for graphviz)
 > i3parse mode-graph
+
+# Show free keybindings
+> i3parse free
+
+# Show free keybindings containing a letter in "layout"
+> i3parse free layout
+
+# Show free keybindings that use shift
+> i3parse free --shift
+
 ```
 
 # Caveats
@@ -33,3 +43,4 @@ In the case of parse errors, the author has found it helpful to copy the error-c
 * This tool was very much influenced by [emacs](https://www.gnu.org/software/emacs/) with its features for self documentation.
 * The [parsimonious library](https://github.com/erikrose/parsimonious) is used for parsing.
 * [i3wm question regarding programmatically querying keybinding ](https://faq.i3wm.org/question/5483/how-can-i-list-all-xorg-and-i3-keybindings-currently-in-effect/index.html)
+* The functionality to find unbound keys is influenced by a similar feature in emacs [free-keys](https://github.com/Fuco1/free-keys)

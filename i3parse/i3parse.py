@@ -7,14 +7,15 @@ import collections
 import itertools
 import json
 import os
+import string as string_mod
 
 import graphviz
 import parsimonious.grammar
 
 DEFAULT_FILE = os.path.join(os.environ['HOME'], '.i3/config')
 
-def file_option(parser):
-    parser.add_argument('file', type=str, help='', nargs='?', default=DEFAULT_FILE)
+def file_option(parser, name='file'):
+    parser.add_argument(name, type=str, help='', nargs='?', default=DEFAULT_FILE)
 
 def json_option(parser):
     parser.add_argument('--json', action='store_true', help='Output in machine readable json')
@@ -22,6 +23,14 @@ def json_option(parser):
 def build_parser():
     parser = argparse.ArgumentParser(description='')
     parsers = parser.add_subparsers(dest='command')
+
+    free = parsers.add_parser('free', help='Find free keys with certain properties')
+    free.add_argument('--mode', type=str, help='Show keys within this mode', default='default')
+    free.add_argument('--shift', action='store_true', help='Only return keys with shift')
+    free.add_argument('--control', action='store_true', help='Only return keys with control')
+    free.add_argument('--mod1', action='store_true', help='Only return keys with Mod1 (alt / meta)')
+    file_option(free, name='--file')
+    free.add_argument('letters', type=str, help='Try to return a binding with one of these letters')
 
     modes = parsers.add_parser('modes', help='Show the keybinding modes and how to traverse them')
     file_option(modes)
@@ -65,6 +74,7 @@ def compress_binding(binding):
     output = output.replace('$mod', '$')
     output = output.replace('mod1', 'M')
     output = output.replace('super', 'S')
+    output = output.replace('control', 'C')
     output = output.replace('shift', 's')
     return output
 
@@ -80,7 +90,7 @@ def diacriticize_binding(s):
     "'Creatively' compress binding with diacritics"
     parts = s.split('+')
     key = parts[-1].lower()
-    shift = modifier = sup = mod1 = False
+    control = shift = modifier = sup = mod1 = False
     for part in parts[:-1]:
         if part.lower() == 'mod1':
             mod1 = True
@@ -90,11 +100,15 @@ def diacriticize_binding(s):
             modifier = True
         if part.lower() == 'shift':
             shift = True
+        if part.lower() == 'control':
+            control = True
 
     combining_s = u"\u1de4"
     subscript_m = u'\u2098'
 
     output = key
+    if control:
+        output = 'C' + output
     if shift:
         output = output.upper()
     if sup:
@@ -128,6 +142,39 @@ def main():
         with open(args.file) as stream:
             input_string = stream.read()
             ast = parse(input_string)
+    elif args.command == 'free':
+        with open(args.file) as stream:
+            input_string = stream.read()
+            ast = parse(input_string)
+
+        bindings = get_bindings(ast)
+        bindings = [binding for binding in bindings if binding['mode'] == args.mode]
+
+        characters = string_mod.lowercase + string_mod.punctuation
+        free_keys = [parsed_key(c, mod=True, shift=shift, mod1=mod1, control=control) for c in characters for shift in (True, False) for mod1 in (True, False) for control in (True, False)]
+
+        if args.control:
+            free_keys = [k for k in free_keys if k['control']]
+
+        if args.shift:
+            free_keys = [k for k in free_keys if k['shift']]
+
+        if args.mod1:
+            free_keys = [k for k in free_keys if k['mod1']]
+
+        if args.letters:
+            free_keys = [k for k in free_keys if k['key'] in args.letters]
+
+        for binding in bindings:
+            key = parse_key(binding['key'])
+            if key in free_keys:
+                free_keys.remove(key)
+
+        for key in free_keys:
+            print(format_key(key))
+
+
+
     elif args.command == 'bindings':
         with open(args.file) as stream:
             input_string = stream.read()
@@ -364,6 +411,48 @@ def parse_binding(ast, mode_name):
         mode_target=mode,
         mode=mode_name,
         )
+
+
+def parse_key(string):
+    new_string = None
+
+    while string != new_string:
+        if new_string is not None:
+            string = new_string
+        new_string = string.replace(' ', '')
+
+    parts = string.split('+')
+    key = parts[-1].lower()
+    control = mod1 = shift = mod = False
+    for modifier in parts[:-1]:
+        modifier = modifier.lower()
+        mod1 |=  modifier == 'mod1'
+        shift |=  modifier == 'shift'
+        mod |=  modifier == '$mod'
+        control |=  modifier == 'control'
+
+    return parsed_key(key, mod1=mod1, shift=shift, mod=mod, control=control)
+
+def parsed_key(key, mod1=False, shift=False, mod=False, control=False):
+    return dict(mod1=mod1, shift=shift, mod=mod, key=key, control=control)
+
+def format_key(key):
+    result = ''
+
+    if key['mod']:
+        result += 'Mod+'
+
+    if key['mod1']:
+        result += 'Mod1+'
+
+    if key['control']:
+        result += 'Control+'
+
+    if key['shift']:
+        result += 'Shift+'
+
+    result += key['key']
+    return result
 
 
 def dump_tree(ast, depth=0):
