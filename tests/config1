@@ -1,0 +1,5 @@
+mode "test" {
+    bindsym q mode "default"
+}
+
+bindsym mod+t mode "test"

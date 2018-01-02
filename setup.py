@@ -31,6 +31,6 @@ setuptools.setup(
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)"
     ],
-    test_suite='nose.collector',
+    setup_requires=['pytest-runner'],
     install_requires=['parsimonious', 'graphviz']
 )

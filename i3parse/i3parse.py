@@ -12,10 +12,30 @@ import string as string_mod
 import graphviz
 import parsimonious.grammar
 
-DEFAULT_FILE = os.path.join(os.environ['HOME'], '.i3/config')
+def default_file():
+    for file in default_files():
+        if os.path.exists(file):
+            return file
+        else:
+            return None
+
+def default_files():
+    xdg_config_home = os.environ.get(
+        'XDG_CONFIG_HOME',
+        os.path.join(os.environ.get('HOME', '/'), '.config'))
+
+    xdg_config_dirs = os.environ.get('XDG_CONFIG_DIRS', '/etc/xdg')
+
+    # See Files section in man i3
+    return  [
+        os.path.join(os.environ.get('HOME', '/'), '.i3/config'),
+        os.path.join(xdg_config_home, 'i3/config'),
+        '/etc/i3/config',
+        os.path.join(xdg_config_dirs, 'i3/config')]
+
 
 def file_option(parser, name='file'):
-    parser.add_argument(name, type=str, help='', nargs='?', default=DEFAULT_FILE)
+    parser.add_argument(name, type=str, help='', nargs='?', default=default_file())
 
 def json_option(parser):
     parser.add_argument('--json', action='store_true', help='Output in machine readable json')
