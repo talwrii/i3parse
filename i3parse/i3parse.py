@@ -13,9 +13,9 @@ import graphviz
 import parsimonious.grammar
 
 def default_file():
-    for file in default_files():
-        if os.path.exists(file):
-            return file
+    for filename in default_files():
+        if os.path.exists(filename):
+            return filename
         else:
             return None
 
