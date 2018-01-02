@@ -195,10 +195,11 @@ def main():
             if key in free_keys:
                 free_keys.remove(key)
 
-        free_keys.sort(key=key_sort)
+        free_keys.sort(key=key_sorter(args.letters))
 
         for key in free_keys:
             print(format_key(key))
+
     elif args.command == 'bindings':
         with open(args.file) as stream:
             input_string = stream.read()
@@ -478,9 +479,21 @@ def format_key(key):
     result += key['key']
     return result
 
-def key_sort(key):
-    num_mods = sum(map(int, (key['shift'], key['control'], key['mod1'], key['mod'])))
-    return key['key'] not in string_mod.letters, key['key'], num_mods, not key['shift'], not key['control'], not key['mod1'], key
+def key_sorter(letters):
+    letters = letters or ""
+    def key_sort(key):
+        num_mods = sum(map(int, (key['shift'], key['control'], key['mod1'], key['mod'])))
+        return (
+            key['key'] not in letters,
+            letters.find(key['key']),
+            key['key'] not in string_mod.letters,
+            key['key'],
+            num_mods,
+            not key['shift'],
+            not key['control'],
+            not key['mod1'],
+            key)
+    return key_sort
 
 def dump_tree(ast, depth=0):
     print('    ' * depth + ast.expr_name)
