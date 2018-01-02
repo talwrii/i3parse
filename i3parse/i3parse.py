@@ -169,7 +169,7 @@ def main():
         bindings = get_bindings(ast)
         bindings = [binding for binding in bindings if binding['mode'] == args.mode]
 
-        characters = string_mod.lowercase + string_mod.punctuation
+        characters = string_mod.ascii_lowercase + string_mod.punctuation
         free_keys = [
             parsed_key(c, mod=True, shift=shift, mod1=mod1, control=control)
             for c in characters
@@ -486,7 +486,7 @@ def key_sorter(letters):
         return (
             key['key'] not in letters,
             letters.find(key['key']),
-            key['key'] not in string_mod.letters,
+            key['key'] not in string_mod.ascii_letters,
             key['key'],
             num_mods,
             not key['shift'],

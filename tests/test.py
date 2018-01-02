@@ -33,12 +33,12 @@ def test_free():
     config_file = os.path.join(HERE, 'config1')
     output = subprocess.check_output(['i3parse', 'free', '--file', config_file])
     print(output)
-    assert output.startswith('Mod+a\nMod+Shift+a\nMod+Control+a\nMod+Mod1+a')
+    assert output.startswith(b'Mod+a\nMod+Shift+a\nMod+Control+a\nMod+Mod1+a')
     assert len(output.splitlines()) == 464 # consistency testing
 
 def test_free_letter_sort():
     config_file = os.path.join(HERE, 'config1')
     output = subprocess.check_output(['i3parse', 'free', '--file', config_file, 'hey'])
     print(output)
-    assert output.startswith('Mod+h')
-    assert output.index('Mod+h')  < output.index('Mod+e') < output.index('Mod+y')
+    assert output.startswith(b'Mod+h')
+    assert output.index(b'Mod+h')  < output.index(b'Mod+e') < output.index(b'Mod+y')
