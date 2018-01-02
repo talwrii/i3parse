@@ -28,3 +28,10 @@ def test_consistency():
 default mod+t mode "test"
 test q mode "default"
 """
+
+def test_free():
+    config_file = os.path.join(HERE, 'config1')
+    output = subprocess.check_output(['i3parse', 'free', '--file', config_file])
+    print(output)
+    assert output.startswith('Mod+a\nMod+Shift+a\nMod+Control+a\nMod+Mod1+a')
+    assert len(output.splitlines()) == 464

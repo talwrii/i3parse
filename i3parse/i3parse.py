@@ -49,7 +49,7 @@ def build_parser():
     free.add_argument('--control', action='store_true', help='Only return keys with control')
     free.add_argument('--mod1', action='store_true', help='Only return keys with Mod1 (alt / meta)')
     file_option(free, name='--file')
-    free.add_argument('letters', type=str, help='Try to return a binding with one of these letters')
+    free.add_argument('letters', type=str, nargs='?', help='Try to return a binding with one of these letters')
 
     modes = parsers.add_parser('modes', help='Show the keybinding modes and how to traverse them')
     file_option(modes)
@@ -170,7 +170,13 @@ def main():
         bindings = [binding for binding in bindings if binding['mode'] == args.mode]
 
         characters = string_mod.lowercase + string_mod.punctuation
-        free_keys = [parsed_key(c, mod=True, shift=shift, mod1=mod1, control=control) for c in characters for shift in (True, False) for mod1 in (True, False) for control in (True, False)]
+        free_keys = [
+            parsed_key(c, mod=True, shift=shift, mod1=mod1, control=control)
+            for c in characters
+            for mod1 in (False, True)
+            for control in (False, True)
+            for shift in (False, True)
+        ]
 
         if args.control:
             free_keys = [k for k in free_keys if k['control']]
@@ -189,11 +195,10 @@ def main():
             if key in free_keys:
                 free_keys.remove(key)
 
+        free_keys.sort(key=key_sort)
+
         for key in free_keys:
             print(format_key(key))
-
-
-
     elif args.command == 'bindings':
         with open(args.file) as stream:
             input_string = stream.read()
@@ -473,6 +478,9 @@ def format_key(key):
     result += key['key']
     return result
 
+def key_sort(key):
+    num_mods = sum(map(int, (key['shift'], key['control'], key['mod1'], key['mod'])))
+    return key['key'] not in string_mod.letters, key['key'], num_mods, not key['shift'], not key['control'], not key['mod1'], key
 
 def dump_tree(ast, depth=0):
     print('    ' * depth + ast.expr_name)
