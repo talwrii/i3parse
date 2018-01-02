@@ -7,3 +7,5 @@ coverage.xml
 .tox
 .eggs
 venv
+.cache
+.ropeproject
