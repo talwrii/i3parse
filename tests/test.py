@@ -24,7 +24,7 @@ def test_run():
 def test_consistency():
     config_file = os.path.join(HERE, 'config1')
     output = subprocess.check_output(['i3parse', 'bindings', config_file])
-    assert output == """\
+    assert output == b"""\
 default mod+t mode "test"
 test q mode "default"
 """

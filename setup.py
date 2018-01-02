@@ -9,13 +9,26 @@ except ImportError:
     sys.stdout.write('Not using fastentrypoints\n')
     pass
 
-import setuptools
+import setuptools.command.test
 import os
 
 HERE = os.path.dirname(__file__)
 
+class ToxTest(setuptools.command.test.test):
+    user_options = []
+
+    def initialize_options(self):
+        setuptools.command.test.test.initialize_options(self)
+
+    def run_tests(self):
+        import tox
+        tox.cmdline()
+        tox.cmdline(['-c', 'tox-minimal.ini'])
+
+
 setuptools.setup(
     name='i3parse',
+    cmdclass = {'test': ToxTest},
     version="0.1.0",
     author='Tal Wrii',
     author_email='talwrii@gmail.com',
@@ -31,6 +44,5 @@ setuptools.setup(
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)"
     ],
-    setup_requires=['pytest-runner'],
-    install_requires=['parsimonious', 'graphviz']
+    install_requires=['parsimonious', 'graphviz', 'mock']
 )
