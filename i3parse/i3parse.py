@@ -33,7 +33,6 @@ def default_files():
         '/etc/i3/config',
         os.path.join(xdg_config_dirs, 'i3/config')]
 
-
 def file_option(parser, name='file'):
     parser.add_argument(name, type=str, help='', nargs='?', default=default_file())
 
