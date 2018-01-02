@@ -27,8 +27,8 @@ def test_run():
 
 def test_consistency():
     config_file = os.path.join(HERE, 'config1')
-    output = subprocess.check_output(['i3parse', 'bindings', config_file])
-    assert output == b"""\
+    output = run(['bindings', config_file])
+    assert output == """\
 default mod+t mode "test"
 test q mode "default"
 """
@@ -36,18 +36,21 @@ test q mode "default"
 def test_executable():
     # Ensure that args are read correctly
     config_file = os.path.join(HERE, 'config1')
-    output = subprocess.check_output(['i3parse', 'free', '--config', config_file])
-    assert output.startswith(b'Mod+a')
+    output = run(['free', '--config', config_file])
+    assert output.startswith('Mod+a')
 
 def test_free():
     config_file = os.path.join(HERE, 'config1')
-    output = subprocess.check_output(['i3parse', 'free', '--config', config_file])
-    assert output.startswith(b'Mod+a\nMod+Shift+a\nMod+Control+a\nMod+Mod1+a')
+    output = run(['free', '--config', config_file])
+    assert output.startswith('Mod+a\nMod+Shift+a\nMod+Control+a\nMod+Mod1+a')
     assert len(output.splitlines()) == 464 # consistency testing
 
 def test_free_letter_sort():
     config_file = os.path.join(HERE, 'config1')
-    output = subprocess.check_output(['i3parse', 'free', '--config', config_file, 'hey'])
-    print(output)
-    assert output.startswith(b'Mod+h')
-    assert output.index(b'Mod+h')  < output.index(b'Mod+e') < output.index(b'Mod+y')
+    output = run(['free', '--config', config_file, 'hey'])
+    assert output.startswith('Mod+h')
+    assert output.index('Mod+h')  < output.index('Mod+e') < output.index('Mod+y')
+
+def run(args):
+    return '\n'.join(i3parse.i3parse.run(args)) + '\n'
+

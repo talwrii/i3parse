@@ -13,6 +13,9 @@ import sys
 import graphviz
 import parsimonious.grammar
 
+print_func = print
+def print(*_, **__):
+    raise Exception('Do not use print (see yield in run)')
 
 def default_config():
     for filename in default_configs():
@@ -143,6 +146,9 @@ def diacriticize_binding(s):
 
 
 def main(args=None):
+    print_func('\n'.join(run(args)))
+
+def run(args=None):
     args = build_parser().parse_args(args or sys.argv[1:])
     if args.command == 'mode-graph':
         with open(args.config) as stream:
@@ -151,14 +157,14 @@ def main(args=None):
 
         graph = mode_graph(ast, ignore_keys=args.drop_key)
         key_formatter = diacriticize_binding if args.unicode else compress_binding
-        print(dump_graph(graph, key_formatter))
+        yield dump_graph(graph, key_formatter)
     elif args.command == 'modes':
         with open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
 
         for mode in sorted(get_modes(ast)):
-            print(mode)
+            yield mode
     elif args.command == 'validate':
         with open(args.config) as stream:
             input_string = stream.read()
@@ -200,7 +206,7 @@ def main(args=None):
         free_keys.sort(key=key_sorter(args.letters))
 
         for key in free_keys:
-            print(format_key(key))
+            yield format_key(key)
 
     elif args.command == 'bindings':
         with open(args.config) as stream:
@@ -224,9 +230,9 @@ def main(args=None):
                 data = dict(mode=binding['mode'], key=binding['key'], text=binding['action_text'], action_type=binding['type'], line=binding['line'])
                 if workspace is not None:
                     data['workspace'] = workspace
-                print(json.dumps(data))
+                yield json.dumps(data)
             else:
-                print(binding['mode'], binding['key'], binding['action_text'])
+                yield ' '.join([binding['mode'], binding['key'], binding['action_text']])
 
     else:
         raise ValueError(args.bindings)
