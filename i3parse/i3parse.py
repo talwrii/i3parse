@@ -8,18 +8,20 @@ import itertools
 import json
 import os
 import string as string_mod
+import sys
 
 import graphviz
 import parsimonious.grammar
 
-def default_file():
-    for filename in default_files():
+
+def default_config():
+    for filename in default_configs():
         if os.path.exists(filename):
             return filename
         else:
             return None
 
-def default_files():
+def default_configs():
     xdg_config_home = os.environ.get(
         'XDG_CONFIG_HOME',
         os.path.join(os.environ.get('HOME', '/'), '.config'))
@@ -33,8 +35,8 @@ def default_files():
         '/etc/i3/config',
         os.path.join(xdg_config_dirs, 'i3/config')]
 
-def file_option(parser, name='file'):
-    parser.add_argument(name, type=str, help='', nargs='?', default=default_file())
+def config_option(parser, name='config'):
+    parser.add_argument(name, type=str, help='', nargs='?', default=default_config())
 
 def json_option(parser):
     parser.add_argument('--json', action='store_true', help='Output in machine readable json')
@@ -48,22 +50,22 @@ def build_parser():
     free.add_argument('--shift', action='store_true', help='Only return keys with shift')
     free.add_argument('--control', action='store_true', help='Only return keys with control')
     free.add_argument('--mod1', action='store_true', help='Only return keys with Mod1 (alt / meta)')
-    file_option(free, name='--file')
+    config_option(free, name='--config')
     free.add_argument('letters', type=str, nargs='?', help='Try to return a binding with one of these letters')
 
     modes = parsers.add_parser('modes', help='Show the keybinding modes and how to traverse them')
-    file_option(modes)
+    config_option(modes)
 
     mode_graph = parsers.add_parser('mode-graph', help='Show the keybinding modes and how to traverse them')
-    file_option(mode_graph)
+    config_option(mode_graph)
     mode_graph.add_argument('--drop-key', '-d', help='Ignore this key in all modes', type=str, action='append')
     mode_graph.add_argument('--unicode', '-u', action='store_true', default=False, help='Compress with unicode')
 
     validate_parser = parsers.add_parser('validate', help='Validate key-bindings file (check if it parses)')
-    file_option(validate_parser)
+    config_option(validate_parser)
 
     binding_parser = parsers.add_parser('bindings', help='Show bindings')
-    file_option(binding_parser)
+    config_option(binding_parser)
     binding_parser.add_argument('--mode', '-m', type=str, help='Only should bindings for this mode')
     binding_parser.add_argument('--type', '-t', type=str, choices=sorted(set(get_bind_types().values())), help='Only show bindings of this type')
     json_option(binding_parser)
@@ -140,10 +142,10 @@ def diacriticize_binding(s):
     return output
 
 
-def main():
-    args = build_parser().parse_args()
+def main(args=None):
+    args = build_parser().parse_args(args or sys.argv[1:])
     if args.command == 'mode-graph':
-        with open(args.file) as stream:
+        with open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
 
@@ -151,18 +153,18 @@ def main():
         key_formatter = diacriticize_binding if args.unicode else compress_binding
         print(dump_graph(graph, key_formatter))
     elif args.command == 'modes':
-        with open(args.file) as stream:
+        with open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
 
         for mode in sorted(get_modes(ast)):
             print(mode)
     elif args.command == 'validate':
-        with open(args.file) as stream:
+        with open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
     elif args.command == 'free':
-        with open(args.file) as stream:
+        with open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
 
@@ -201,7 +203,7 @@ def main():
             print(format_key(key))
 
     elif args.command == 'bindings':
-        with open(args.file) as stream:
+        with open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
 
