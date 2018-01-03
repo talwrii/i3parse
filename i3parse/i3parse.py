@@ -17,12 +17,25 @@ print_func = print
 def print(*_, **__):
     raise Exception('Do not use print (see yield in run)')
 
+open_func = open
+def open(*_, **__):
+    raise Exception('Do not use open. Use extended notation')
+
+class NoConfigFileFound(Exception):
+    def __init__(self, possibilities):
+        self.possibilities = possibilities
+
+    def __str__(self):
+        return '{}({!r})'.format(type(self).__name__, self.possibilities)
+
+
 def default_config():
-    for filename in default_configs():
+    possible_config_files = default_configs()
+    for filename in possible_config_files:
         if os.path.exists(filename):
             return filename
         else:
-            return None
+            return NoConfigFileFound(possible_config_files)
 
 def default_configs():
     xdg_config_home = os.environ.get(
@@ -144,6 +157,11 @@ def diacriticize_binding(s):
 
     return output
 
+def extended_open(filename):
+    if isinstance(filename, NoConfigFileFound):
+        raise filename
+    else:
+        return open_func(filename)
 
 def main(args=None):
     print_func('\n'.join(run(args)))
@@ -151,7 +169,7 @@ def main(args=None):
 def run(args=None):
     args = build_parser().parse_args(args or sys.argv[1:])
     if args.command == 'mode-graph':
-        with open(args.config) as stream:
+        with extended_open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
 
@@ -159,18 +177,18 @@ def run(args=None):
         key_formatter = diacriticize_binding if args.unicode else compress_binding
         yield dump_graph(graph, key_formatter)
     elif args.command == 'modes':
-        with open(args.config) as stream:
+        with extended_open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
 
         for mode in sorted(get_modes(ast)):
             yield mode
     elif args.command == 'validate':
-        with open(args.config) as stream:
+        with extended_open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
     elif args.command == 'free':
-        with open(args.config) as stream:
+        with extended_open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
 
@@ -209,7 +227,7 @@ def run(args=None):
             yield format_key(key)
 
     elif args.command == 'bindings':
-        with open(args.config) as stream:
+        with extended_open(args.config) as stream:
             input_string = stream.read()
             ast = parse(input_string)
 

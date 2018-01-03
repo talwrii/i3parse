@@ -1,5 +1,6 @@
 import os
 import subprocess
+import pytest
 
 import mock
 
@@ -51,6 +52,16 @@ def test_free_letter_sort():
     assert output.startswith('Mod+h')
     assert output.index('Mod+h')  < output.index('Mod+e') < output.index('Mod+y')
 
+def test_mode_graph():
+    config_file = os.path.join(HERE, 'config1')
+    output = run(['mode-graph', config_file])
+
+def test_cover_no_default_config():
+    with mock.patch('i3parse.i3parse.default_configs', lambda: ['/doesnotexist']):
+        with pytest.raises(i3parse.i3parse.NoConfigFileFound) as e:
+            run(['mode-graph'])
+
+        assert '/doesnotexist' in str(e)
+
 def run(args):
     return '\n'.join(i3parse.i3parse.run(args)) + '\n'
-
