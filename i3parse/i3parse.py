@@ -6,12 +6,15 @@ import argparse
 import collections
 import itertools
 import json
+import logging
 import os
 import string as string_mod
 import sys
 
 import graphviz
 import parsimonious.grammar
+
+LOGGER = logging.getLogger()
 
 print_func = print
 def print(*_, **__):
@@ -84,6 +87,7 @@ class _HelpAction(argparse._HelpAction):
 def build_parser():
     parser = argparse.ArgumentParser(description='Inspect your i3 configuration and answer questions', add_help=False)
     parser.add_argument('--help', action=_HelpAction, help='help for help if you need some help')  # add custom help
+    parser.add_argument('--debug', action='store_true', help='Print debug output')
     parsers = parser.add_subparsers(dest='command')
 
     free = parsers.add_parser('free', help='Find free keys with certain properties')
@@ -192,7 +196,13 @@ def main(args=None):
     print_func('\n'.join(run(args)))
 
 def run(args=None):
+    if '--debug' in sys.argv[1:]:
+        logging.basicConfig(level=logging.DEBUG)
+
+    LOGGER.debug('Starting')
+
     args = build_parser().parse_args(args or sys.argv[1:])
+
     if args.command == 'mode-graph':
         with extended_open(args.config) as stream:
             input_string = stream.read()
