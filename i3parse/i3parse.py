@@ -305,7 +305,8 @@ key_value = variable "=" quoted_string
 lines = line *
 line = comment / statement
 statement = ( space * ) statement_no_line newline
-statement_no_line = bind_statement / force_wrapping / focus_follows_mouse /  set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / empty_statement
+statement_no_line = bind_statement / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / empty_statement
+yes_no_statement = workspace_auto_back_and_forth / force_wrapping / focus_follows_mouse
 
 popup_fullscreen_action = "popup_during_fullscreen" space popup_action
 
@@ -316,7 +317,7 @@ popup_action = "leave_fullscreen" / "smart" / "ignore"
 workspace_buttons = "workspace_buttons" space yes_no
 
 empty_statement = ""
-bind_statement = "bindsym" (space "--release") ? space key space bind_action
+bind_statement = ( "bindsym" / "bindcode" ) (space "--release") ? space key space bind_action
 bind_action = exec_action / i3_toggle_fullscreen / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_modify_float / i3_workspace_command / i3_resize_action / scratch_show
 
 key = word
@@ -352,6 +353,7 @@ octo = ~"\#"
 newline = ~"\n*"
 force_wrapping = "force_focus_wrapping" space yes_no
 focus_follows_mouse = "focus_follows_mouse" space yes_no
+workspace_auto_back_and_forth = "workspace_auto_back_and_forth" space yes_no
 yes_no = "yes" / "no"
 space = ~"[ \t]+"
 set_statement = "set " word " " word

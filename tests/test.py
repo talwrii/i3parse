@@ -30,6 +30,7 @@ def test_consistency():
     config_file = os.path.join(HERE, 'config1')
     output = run(['bindings', config_file])
     assert output == """\
+default 214 mode "code"
 default mod+t mode "test"
 test q mode "default"
 """
