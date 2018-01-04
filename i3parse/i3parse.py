@@ -57,8 +57,33 @@ def config_option(parser, name='config'):
 def json_option(parser):
     parser.add_argument('--json', action='store_true', help='Output in machine readable json')
 
+class _HelpAction(argparse._HelpAction):
+    # https://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output
+    # author: grundic, Adaephon
+    # explicit: mit license
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.print_help()
+
+        # retrieve subparsers from parser
+        subparsers_actions = [
+            action for action in parser._actions
+            if isinstance(action, argparse._SubParsersAction)]
+        # there will probably only be one subparser_action,
+        # but better save than sorry
+        for subparsers_action in subparsers_actions:
+            # get all subparsers and print help
+            for choice, subparser in subparsers_action.choices.items():
+                print_func()
+                print_func("Subparser '{}'".format(choice))
+                print_func(subparser.format_help())
+
+        parser.exit()
+
+
 def build_parser():
-    parser = argparse.ArgumentParser(description='')
+    parser = argparse.ArgumentParser(description='Inspect your i3 configuration and answer questions', add_help=False)
+    parser.add_argument('--help', action=_HelpAction, help='help for help if you need some help')  # add custom help
     parsers = parser.add_subparsers(dest='command')
 
     free = parsers.add_parser('free', help='Find free keys with certain properties')

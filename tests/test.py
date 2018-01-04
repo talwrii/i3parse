@@ -56,12 +56,16 @@ def test_mode_graph():
     config_file = os.path.join(HERE, 'config1')
     output = run(['mode-graph', config_file])
 
-def test_cover_no_default_config():
+def test_no_default_config():
     with mock.patch('i3parse.i3parse.default_configs', lambda: ['/doesnotexist']):
         with pytest.raises(i3parse.i3parse.NoConfigFileFound) as e:
             run(['mode-graph'])
 
         assert '/doesnotexist' in str(e)
+
+def test_cover_help():
+    with pytest.raises(SystemExit):
+        run(['--help'])
 
 def run(args):
     return '\n'.join(i3parse.i3parse.run(args)) + '\n'
