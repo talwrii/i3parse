@@ -34,11 +34,8 @@ class NoConfigFileFound(Exception):
 
 def default_config():
     possible_config_files = default_configs()
-    for filename in possible_config_files:
-        if os.path.exists(filename):
-            return filename
-        else:
-            return NoConfigFileFound(possible_config_files)
+    existing_files = list(filter(os.path.exists, possible_config_files))
+    return existing_files[0] if existing_files else NoConfigFileFound(possible_config_files)
 
 def default_configs():
     xdg_config_home = os.environ.get(
