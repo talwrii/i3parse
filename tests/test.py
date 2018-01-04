@@ -52,9 +52,18 @@ def test_free_letter_sort():
     assert output.startswith('Mod+h')
     assert output.index('Mod+h')  < output.index('Mod+e') < output.index('Mod+y')
 
-def test_mode_graph():
+def test_cover_mode_graph():
     config_file = os.path.join(HERE, 'config1')
     output = run(['mode-graph', config_file])
+
+def test_cover_modes():
+    config_file = os.path.join(HERE, 'config1')
+    output = run(['modes', config_file])
+
+def test_cover_validate():
+    config_file = os.path.join(HERE, 'config1')
+    output = run(['validate', config_file])
+
 
 def test_no_default_config():
     with mock.patch('i3parse.i3parse.default_configs', lambda: ['/doesnotexist']):
