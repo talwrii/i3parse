@@ -293,15 +293,15 @@ result = ( block / line ) *
 i3_toggle_fullscreen = "fullscreen" space "toggle"
 
 block = mode_block / bar_block
-mode_block = "mode" space quoted_string quote_block
 bar_block = "bar" space quote_block
 quote_block = ( space ? ) "{" newline lines ( space ? ) "}" newline
+mode_block = "mode" space quoted_string quote_block
 
 
 lines = line
 line = comment / statement
 statement = ( space * ) statement_no_line newline
-statement_no_line = bind_statement / geometry_statement / workspace_layout / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / no_focus_statement / orientation_statement / new_window_border / hide_edge_borders_statement / set_from_resource / empty_statement
+statement_no_line = bind_statement / geometry_statement / workspace_layout / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / assign_statement / no_focus_statement / orientation_statement / new_window_border / hide_edge_borders_statement / set_from_resource / empty_statement
 
 yes_no_statement =  ( "workspace_auto_back_and_forth" / "force_focus_wrapping" / "focus_follows_mouse") space yes_no
 
@@ -311,7 +311,7 @@ comma_list = key_value / (comma_list space "," space key_value)
 key_value = variable_name "=" quoted_string
 
 
-
+assign_statement = "assign" space window_specifier space workspace_const
 no_focus_statement = "no_focus" space window_specifier
 
 hide_edge_borders_statement = "hide_edge_borders" space window_edge_const
@@ -350,12 +350,12 @@ scratch_hide = "scratchpad" space "hide"
 status_command = "status_command" space any_chars
 i3_move_action = "move" (space ("container" / "window" / "workspace") ) ? ( space  "to" ) ? ( space ( "output" / "mark" / "workspace" ) ) ? space move_target
 move_target = direction / "scratchpad" / number
-i3_workspace_command = "workspace" space (quoted_string / workspace_sentinels / number)
+i3_workspace_command = "workspace" space workspace_const
+workspace_const = (quoted_string / workspace_sentinels / number)
 workspace_sentinels = "back_and_forth"
 i3_modify_float = "floating" space ( "enable" / "toggle" / "disable") (space "border" space "pixel" space number)?
 i3_layout_action = "layout" space layout
 layout = "stacking" / "tabbed" / "default" / ( "toggle" space "split" )
-mode_action = "mode" space quoted_string
 focus_action = "focus" ( space "output" ) ? space (direction / focus_mode / focus_location)
 focus_mode = "mode_toggle"
 focus_location = "parent" / "child"
@@ -366,6 +366,7 @@ split_direction = "h" / "v"
 i3_resize_action = "resize" space ( "shrink" / "grow" ) space ("width" / "height") space measurement
 
 exec_action = "exec " exec_bash
+mode_action = "mode" space (quoted_string  / variable_name / variable )
 exec_bash = any_chars
 float_key_statement = "floating_modifier " word
 comment = (space ?) octo any_chars newline
@@ -383,6 +384,8 @@ dotted_name =  ( variable_name "." dotted_name ) / variable_name
 variable_name = ~"[a-zA-Z_][a-zA-Z_0-9]*"
 variable = "$" variable_name
 
+
+quoted_variable = quote variable quote
 
 quoted_string = quote string_contents quote
 string_contents = ~'[^"\n]*'
