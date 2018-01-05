@@ -1,4 +1,5 @@
 # make code as python 3 compatible as possible
+# -*- coding: utf-8 -*-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -295,23 +296,25 @@ i3_toggle_fullscreen = "fullscreen" space "toggle"
 block = mode_block / bar_block
 bar_block = "bar" space quote_block
 quote_block = ( space ? ) "{" newline lines ( space ? ) "}" newline
-mode_block = "mode" space quoted_string quote_block
+mode_block = "mode" space (quoted_variable / quoted_string) quote_block
 
 
-lines = line
+lines = line*
 line = comment / statement
 statement = ( space * ) statement_no_line newline
-statement_no_line = bind_statement / geometry_statement / workspace_layout / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / assign_statement / no_focus_statement / orientation_statement / new_window_border / hide_edge_borders_statement / set_from_resource / empty_statement
+statement_no_line = bind_statement / geometry_statement / mouse_warping_statement / workspace_layout / workspace_output / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_always / exec_action / window_event / assign_statement / no_focus_statement / orientation_statement / new_window_border / hide_edge_borders_statement / set_from_resource / empty_statement
 
-yes_no_statement =  ( "workspace_auto_back_and_forth" / "force_focus_wrapping" / "focus_follows_mouse") space yes_no
+workspace_output = "workspace" space workspace_const space "output" space word
+yes_no_statement =  ( "workspace_auto_back_and_forth" / "force_focus_wrapping" / "focus_follows_mouse" / "force_xinerama") space yes_no
 
 window_event = "for_window" space window_specifier space bind_action
-window_specifier = "[" comma_list "]"
-comma_list = key_value / (comma_list space "," space key_value)
+window_specifier = "[" ( comma_list ) "]"
+comma_list = (key_value space ("," space)? comma_list) / key_value
 key_value = variable_name "=" quoted_string
+mouse_warping_statement = "mouse_warping" space ( "none" / "output" )
 
 
-assign_statement = "assign" space window_specifier space workspace_const
+assign_statement = "assign" space window_specifier space ("→" space)? workspace_const
 no_focus_statement = "no_focus" space window_specifier
 
 hide_edge_borders_statement = "hide_edge_borders" space window_edge_const
@@ -330,7 +333,9 @@ orientation = ("vertical" / "horizontal" / "auto" )
 
 popup_fullscreen_action = "popup_during_fullscreen" space popup_action
 
-exec_action = exec quoted_string
+exec_action = exec space rest
+
+exec_always = "exec_always" space rest
 
 popup_action = "leave_fullscreen" / "smart" / "ignore"
 
@@ -351,7 +356,7 @@ status_command = "status_command" space any_chars
 i3_move_action = "move" (space ("container" / "window" / "workspace") ) ? ( space  "to" ) ? ( space ( "output" / "mark" / "workspace" ) ) ? space move_target
 move_target = direction / "scratchpad" / number
 i3_workspace_command = "workspace" space workspace_const
-workspace_const = (quoted_string / workspace_sentinels / number)
+workspace_const = (quoted_string /  workspace_sentinels / variable_name / number)
 workspace_sentinels = "back_and_forth"
 i3_modify_float = "floating" space ( "enable" / "toggle" / "disable") (space "border" space "pixel" space number)?
 i3_layout_action = "layout" space layout
@@ -407,6 +412,7 @@ def get_bind_types():
     global _get_bind_types
     if _get_bind_types is None:
         ACTION_TYPES = dict(
+            exec_always='exec',
             exec_action='exec',
             i3_toggle_fullscreen='window',
             mode_action='mode',
@@ -432,11 +438,12 @@ def get_bind_types():
 
 def get_modes(ast):
     if ast.expr_name == 'mode_block':
-        _, _, name_node, _ = ast.children
+        _, _, (name_node,), _ = ast.children
         if name_node.expr_name == 'quoted_string':
             _, string_node, _ = name_node
             return [string_node.text]
         else:
+            print_func('type', name_node.expr_name)
             raise ValueError(name_node.expr_name)
     else:
         return list(itertools.chain.from_iterable(get_modes(child) for child in ast.children))
@@ -445,7 +452,7 @@ def get_modes(ast):
 
 def get_bindings(ast, mode_name='default'):
     if ast.expr_name == 'mode_block':
-        _, _, mode_name_node, _ = ast.children
+        _, _, (mode_name_node,), _ = ast.children
         _, mode_name, _ = [c.text for c in mode_name_node.children]
 
     if ast.expr_name == 'bind_statement':
@@ -472,7 +479,7 @@ def parse_binding(ast, mode_name):
         _, _, direction = specific_action
         i3_complex_action = dict(action='split', direction=direction.text)
     elif specific_action.expr_name == 'mode_action':
-        _, _, (_,  string , _) = specific_action.children
+        _, _, ((_,  string , _),) = specific_action.children
         mode = string.text
     elif specific_action.expr_name == 'focus_action':
         _, _, output, direction = specific_action.children
