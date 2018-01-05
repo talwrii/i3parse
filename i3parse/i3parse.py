@@ -300,13 +300,31 @@ quote_block = ( space ? ) "{" newline lines ( space ? ) "}" newline
 window_event = "for_window" space window_specifier space bind_action
 window_specifier = "[" comma_list "]"
 comma_list = key_value / (comma_list space "," space key_value)
-key_value = variable "=" quoted_string
+key_value = variable_name "=" quoted_string
 
 lines = line *
 line = comment / statement
 statement = ( space * ) statement_no_line newline
-statement_no_line = bind_statement / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / empty_statement
-yes_no_statement = workspace_auto_back_and_forth / force_wrapping / focus_follows_mouse
+statement_no_line = bind_statement / geometry_statement / workspace_layout / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / no_focus_statement / orientation_statement / new_window_border / hide_edge_borders_statement / set_from_resource / empty_statement
+yes_no_statement =  ( "workspace_auto_back_and_forth" / "force_focus_wrapping" / "focus_follows_mouse") space yes_no
+
+dotted_name =  ( variable_name "." dotted_name ) / variable_name
+
+no_focus_statement = "no_focus" space window_specifier
+
+hide_edge_borders_statement = "hide_edge_borders" space window_edge_const
+
+window_edge_const = "none" / "vertical" / "horizontal" / "both" / "smart"
+
+geometry_statement = ("floating_minimum_size" / "floating_maximum_size") space signed_number (space?) "x" (space?) signed_number
+
+workspace_layout = "workspace_layout" space layout
+
+new_window_border = "new_window" space border_const
+border_const = ( "normal" / "none" / ("pixel" space number) )
+
+orientation_statement = "default_orientation" space orientation
+orientation = ("vertical" / "horizontal" / "auto" )
 
 popup_fullscreen_action = "popup_during_fullscreen" space popup_action
 
@@ -353,14 +371,15 @@ font_statement = "font " any_chars
 any_chars = ~".*"
 octo = ~"\#"
 newline = ~"\n*"
-force_wrapping = "force_focus_wrapping" space yes_no
-focus_follows_mouse = "focus_follows_mouse" space yes_no
-workspace_auto_back_and_forth = "workspace_auto_back_and_forth" space yes_no
 yes_no = "yes" / "no"
 space = ~"[ \t]+"
-set_statement = "set " word " " word
+set_statement = "set " ( word / variable ) " " rest
+set_from_resource = "set_from_resource" space variable space dotted_name space rest
 word = ~"[^() \n]+"
-variable = ~"[a-zA-Z_]*"
+rest = ~"[^\n]+"
+variable_name = ~"[a-zA-Z_][a-zA-Z_0-9]*"
+variable = "$" variable_name
+
 
 quoted_string = quote string_contents quote
 string_contents = ~'[^"\n]*'
@@ -369,6 +388,7 @@ quote = "\""
 measurement = ((axiomatic_measurement space "or" space measurement) / axiomatic_measurement)
 axiomatic_measurement = number space ("ppt" / "px")
 number = ~"[0-9]+"
+signed_number = ( "-" ? ) number
 ''')
     return grammar
 
