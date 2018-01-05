@@ -297,18 +297,20 @@ mode_block = "mode" space quoted_string quote_block
 bar_block = "bar" space quote_block
 quote_block = ( space ? ) "{" newline lines ( space ? ) "}" newline
 
+
+lines = line
+line = comment / statement
+statement = ( space * ) statement_no_line newline
+statement_no_line = bind_statement / geometry_statement / workspace_layout / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / no_focus_statement / orientation_statement / new_window_border / hide_edge_borders_statement / set_from_resource / empty_statement
+
+yes_no_statement =  ( "workspace_auto_back_and_forth" / "force_focus_wrapping" / "focus_follows_mouse") space yes_no
+
 window_event = "for_window" space window_specifier space bind_action
 window_specifier = "[" comma_list "]"
 comma_list = key_value / (comma_list space "," space key_value)
 key_value = variable_name "=" quoted_string
 
-lines = line *
-line = comment / statement
-statement = ( space * ) statement_no_line newline
-statement_no_line = bind_statement / geometry_statement / workspace_layout / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_action / window_event / no_focus_statement / orientation_statement / new_window_border / hide_edge_borders_statement / set_from_resource / empty_statement
-yes_no_statement =  ( "workspace_auto_back_and_forth" / "force_focus_wrapping" / "focus_follows_mouse") space yes_no
 
-dotted_name =  ( variable_name "." dotted_name ) / variable_name
 
 no_focus_statement = "no_focus" space window_specifier
 
@@ -377,6 +379,7 @@ set_statement = "set " ( word / variable ) " " rest
 set_from_resource = "set_from_resource" space variable space dotted_name space rest
 word = ~"[^() \n]+"
 rest = ~"[^\n]+"
+dotted_name =  ( variable_name "." dotted_name ) / variable_name
 variable_name = ~"[a-zA-Z_][a-zA-Z_0-9]*"
 variable = "$" variable_name
 
