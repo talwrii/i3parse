@@ -65,6 +65,15 @@ def test_cover_validate():
     config_file = os.path.join(HERE, 'config1')
     output = run(['validate', config_file])
 
+def dont_test_complete_config():
+    # This is takine a while to get implemented
+    # leave this disableed for now
+    config_file = os.path.join(HERE, 'completeconfig')
+    output = run(['validate', config_file])
+
+def test_cover_validate():
+    config_file = os.path.join(HERE, 'config1')
+    output = run(['validate', config_file])
 
 def test_no_default_config():
     with mock.patch('i3parse.i3parse.default_configs', lambda: ['/doesnotexist']):
