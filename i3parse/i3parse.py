@@ -11,6 +11,7 @@ import logging
 import os
 import string as string_mod
 import sys
+import io
 
 import graphviz
 import parsimonious.grammar
@@ -75,8 +76,8 @@ class _HelpAction(argparse._HelpAction):
         for subparsers_action in subparsers_actions:
             # get all subparsers and print help
             for choice, subparser in subparsers_action.choices.items():
-                print_func()
-                print_func("Subparser '{}'".format(choice))
+                print_func(u'')
+                print_func(u"Subparser '{}'".format(choice))
                 print_func(subparser.format_help())
 
         parser.exit()
@@ -188,10 +189,16 @@ def extended_open(filename):
     if isinstance(filename, NoConfigFileFound):
         raise filename
     else:
-        return open_func(filename)
+        # Make strings "unicode" in both python2 and python3
+        return io.open(filename)
+
+def unicode_streams():
+    sys.stdout = io.open(sys.stdout.fileno(), 'w', encoding='utf8')
+    sys.stdin = io.open(sys.stdin.fileno(), 'r', encoding='utf8')
 
 def main(args=None):
-    print_func('\n'.join(run(args)))
+    unicode_streams()
+    print_func(u'\n'.join(run(args)))
 
 def run(args=None):
     if '--debug' in sys.argv[1:]:
@@ -403,9 +410,16 @@ signed_number = ( "-" ? ) number
 ''')
     return grammar
 
+def mac2unix(x):
+    return x.replace(u'\r', u'\n')
+
+def dos2unix(x):
+    return x.replace(u'\r\n', u'\n')
+
 def parse(input_string):
     grammar = build_grammar()
-    return grammar.parse(input_string)
+    return grammar.parse(
+        mac2unix(dos2unix(input_string)))
 
 _get_bind_types = None
 def get_bind_types():

@@ -71,6 +71,14 @@ def dont_test_complete_config():
     config_file = os.path.join(HERE, 'completeconfig')
     output = run(['validate', config_file])
 
+def test_comment():
+    config_file = os.path.join(HERE, 'comment.config')
+    output = run(['validate', config_file])
+
+def test_dos():
+    config_file = os.path.join(HERE, 'dos.config')
+    output = run(['validate', config_file])
+
 def test_cover_validate():
     config_file = os.path.join(HERE, 'config1')
     output = run(['validate', config_file])
