@@ -92,9 +92,12 @@ def build_parser():
 
     free = parsers.add_parser('free', help='Find free keys with certain properties')
     free.add_argument('--mode', type=str, help='Show keys within this mode', default='default')
-    free.add_argument('--shift', action='store_true', help='Only return keys with shift')
-    free.add_argument('--control', action='store_true', help='Only return keys with control')
-    free.add_argument('--mod1', action='store_true', help='Only return keys with Mod1 (alt / meta)')
+    free.add_argument('--shift', action='store_true', help='Only return keys with shift', default=None)
+    free.add_argument('--no-shift', action='store_false', help='Only return keys without shift', default=None, dest='control')
+    free.add_argument('--control', action='store_true', help='Only return keys with control', default=None)
+    free.add_argument('--no-control', action='store_false', help='Only return keys without control', default=None, dest='control')
+    free.add_argument('--mod1', action='store_true', help='Only return keys with Mod1 (alt / meta)', default=None)
+    free.add_argument('--no-mod1', action='store_false', help='Only return keys without Mod1 (alt / meta)', default=None, dest='control')
     config_option(free, name='--config')
     free.add_argument('letters', type=str, nargs='?', help='Try to return a binding with one of these letters. There are special values :letter: and :number:')
 
@@ -245,14 +248,14 @@ def run(args=None):
             for shift in (False, True)
         ]
 
-        if args.control:
-            free_keys = [k for k in free_keys if k['control']]
+        if args.control is not None:
+            free_keys = [k for k in free_keys if k['control'] == args.control]
 
-        if args.shift:
-            free_keys = [k for k in free_keys if k['shift']]
+        if args.shift is not None:
+            free_keys = [k for k in free_keys if k['shift'] == args.shift]
 
-        if args.mod1:
-            free_keys = [k for k in free_keys if k['mod1']]
+        if args.mod1 is not None:
+            free_keys = [k for k in free_keys if k['mod1'] == args.mod1]
 
         LETTER_SETS = dict(
             letter=string_mod.ascii_lowercase,
