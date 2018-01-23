@@ -96,7 +96,7 @@ def build_parser():
     free.add_argument('--control', action='store_true', help='Only return keys with control')
     free.add_argument('--mod1', action='store_true', help='Only return keys with Mod1 (alt / meta)')
     config_option(free, name='--config')
-    free.add_argument('letters', type=str, nargs='?', help='Try to return a binding with one of these letters')
+    free.add_argument('letters', type=str, nargs='?', help='Try to return a binding with one of these letters. There are special values :letter: and :number:')
 
     modes = parsers.add_parser('modes', help='Show the keybinding modes and how to traverse them')
     config_option(modes)
@@ -236,7 +236,7 @@ def run(args=None):
         bindings = get_bindings(ast)
         bindings = [binding for binding in bindings if binding['mode'] == args.mode]
 
-        characters = string_mod.ascii_lowercase + string_mod.punctuation
+        characters = string_mod.ascii_lowercase + string_mod.punctuation + string_mod.digits
         free_keys = [
             parsed_key(c, mod=True, shift=shift, mod1=mod1, control=control)
             for c in characters
@@ -254,15 +254,25 @@ def run(args=None):
         if args.mod1:
             free_keys = [k for k in free_keys if k['mod1']]
 
-        if args.letters:
-            free_keys = [k for k in free_keys if k['key'] in args.letters]
+        LETTER_SETS = dict(
+            letter=string_mod.ascii_lowercase,
+            digit=string_mod.digits,
+        )
+
+        if args.letters and args.letters.startswith(':') and args.letters.endswith(':'):
+            letters = LETTER_SETS[args.letters.replace(':', '')]
+        else:
+            letters = args.letters
+
+        if letters:
+            free_keys = [k for k in free_keys if k['key'] in letters]
 
         for binding in bindings:
             key = parse_key(binding['key'])
             if key in free_keys:
                 free_keys.remove(key)
 
-        free_keys.sort(key=key_sorter(args.letters))
+        free_keys.sort(key=key_sorter(letters))
 
         for key in free_keys:
             yield format_key(key)
