@@ -494,7 +494,8 @@ def key_sorter(letters, order_by_letter):
         return (
             letters.find(key['key']) if order_by_letter else None,
             num_mods,
-            key['key'] in string_mod.ascii_letters,
+            key['key'] not in string_mod.ascii_letters,
+            key['key'] not in string_mod.digits,
             key['key'],
             not key['shift'],
             not key['control'],
