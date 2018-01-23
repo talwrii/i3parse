@@ -259,8 +259,10 @@ def run(args=None):
             digit=string_mod.digits,
         )
 
+        order_by_letter = True
         if args.letters and args.letters.startswith(':') and args.letters.endswith(':'):
             letters = LETTER_SETS[args.letters.replace(':', '')]
+            order_by_letter = False
         else:
             letters = args.letters
 
@@ -272,7 +274,7 @@ def run(args=None):
             if key in free_keys:
                 free_keys.remove(key)
 
-        free_keys.sort(key=key_sorter(letters))
+        free_keys.sort(key=key_sorter(letters, order_by_letter))
 
         for key in free_keys:
             yield format_key(key)
@@ -485,16 +487,15 @@ def format_key(key):
     result += key['key']
     return result
 
-def key_sorter(letters):
+def key_sorter(letters, order_by_letter):
     letters = letters or ""
     def key_sort(key):
         num_mods = sum(map(int, (key['shift'], key['control'], key['mod1'], key['mod'])))
         return (
-            key['key'] not in letters,
-            letters.find(key['key']),
-            key['key'] not in string_mod.ascii_letters,
-            key['key'],
+            letters.find(key['key']) if order_by_letter else None,
             num_mods,
+            key['key'] in string_mod.ascii_letters,
+            key['key'],
             not key['shift'],
             not key['control'],
             not key['mod1'],
