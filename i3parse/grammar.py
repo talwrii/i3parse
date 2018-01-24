@@ -16,7 +16,7 @@ mode_block = "mode" space (quoted_variable / quoted_string) quote_block
 lines = line*
 line = comment / statement
 statement = ( space * ) statement_no_line newline
-statement_no_line = bind_statement / geometry_statement / mouse_warping_statement / workspace_layout / workspace_output / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_always / exec_action / window_event / assign_statement / no_focus_statement / orientation_statement / new_window_border / hide_edge_borders_statement / set_from_resource / empty_statement
+statement_no_line = bind_statement / geometry_statement / mouse_warping_statement / workspace_layout / workspace_output / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_always / exec_action / window_event / assign_statement / no_focus_statement / orientation_statement / new_float_border / new_window_border / hide_edge_borders_statement / set_from_resource / empty_statement
 
 workspace_output = "workspace" space workspace_const space "output" space word
 yes_no_statement =  ( "workspace_auto_back_and_forth" / "force_focus_wrapping" / "focus_follows_mouse" / "force_xinerama") space yes_no
@@ -39,6 +39,7 @@ geometry_statement = ("floating_minimum_size" / "floating_maximum_size") space s
 
 workspace_layout = "workspace_layout" space layout
 
+new_float_border = "new_float" space border_const
 new_window_border = "new_window" space border_const
 border_const = ( "normal" / "none" / ("pixel" space number) )
 
