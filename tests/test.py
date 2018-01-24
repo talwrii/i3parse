@@ -44,8 +44,8 @@ def test_executable():
 def test_free():
     config_file = os.path.join(HERE, 'config1')
     output = run(['free', '--config', config_file])
-    assert output.startswith('Mod+a\nMod+Shift+a\nMod+Control+a\nMod+Mod1+a')
-    assert len(output.splitlines()) == 464 # consistency testing
+    assert output.startswith('Mod+a\nMod+b\nMod+c\n'), output
+    assert len(output.splitlines()) == 544 # consistency testing
 
 def test_free_letter_sort():
     config_file = os.path.join(HERE, 'config1')
