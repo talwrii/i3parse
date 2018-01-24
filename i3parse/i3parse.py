@@ -301,7 +301,7 @@ def run(args=None):
 
             if args.json:
                 workspace = (binding.get('i3_complex_action') or dict()).get('workspace')
-                data = dict(mode=binding['mode'], key=binding['key'], text=binding['action_text'], action_type=binding['type'], line=binding['line'])
+                data = dict(mode=binding['mode'], key=binding['key'], text=binding['action_text'], action_type=binding['type'], on_release=binding['release'])
                 if workspace is not None:
                     data['workspace'] = workspace
                 yield json.dumps(data)
@@ -331,6 +331,7 @@ def get_bind_types():
             exec_always='exec',
             exec_action='exec',
             i3_toggle_fullscreen='window',
+            border_action='appearance',
             mode_action='mode',
             focus_action='window',
             i3_action='window',
@@ -381,7 +382,7 @@ def get_bindings(ast, mode_name='default'):
 
 def parse_binding(ast, mode_name):
     bind_types = get_bind_types()
-    _, release, _, key_node, _, action = ast.children
+    _, options, _, key_node, more_options, _, action = ast.children
     key = key_node.text
     i3_complex_action = move_command = i3_action = mode = command = None
     action_text = action.text
@@ -430,10 +431,14 @@ def parse_binding(ast, mode_name):
         i3_action = 'show_scratchpad'
     elif specific_action.expr_name == 'i3_toggle_fullscreen':
         i3_action = 'toggle_fullscreen'
+    elif specific_action.expr_name == 'border_action':
+        i3_action = 'change_borders'
     else:
         raise ValueError(specific_action.expr_name)
 
-    release = bool(release.text.strip())
+    option_list = options.text.split() + more_options.text.split()
+    release = '--release' in option_list
+
     return dict(
         key=key,
         command=command,
