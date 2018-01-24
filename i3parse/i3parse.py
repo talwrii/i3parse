@@ -360,7 +360,6 @@ def get_modes(ast):
             _, string_node, _ = name_node
             return [string_node.text]
         else:
-            print_func('type', name_node.expr_name)
             raise ValueError(name_node.expr_name)
     else:
         return list(itertools.chain.from_iterable(get_modes(child) for child in ast.children))
@@ -380,10 +379,34 @@ def get_bindings(ast, mode_name='default'):
             bindings.extend(get_bindings(child, mode_name))
         return bindings
 
+
 def parse_binding(ast, mode_name):
-    bind_types = get_bind_types()
     _, options, _, key_node, more_options, _, action = ast.children
     key = key_node.text
+
+
+    option_list = options.text.split() + more_options.text.split()
+    release = '--release' in option_list
+
+    next_action = action
+    action_infos = []
+    while len(next_action.children) != 1:
+        print_func('children', action.children)
+        action, _, _, _, next_action = action.children
+        action_infos.append(parse_action(action))
+
+    action_infos.append(parse_action(next_action.children[0]))
+
+    action_info, = action_infos
+
+    return dict(
+        key=key,
+        text=ast.text,
+        release=release,
+        mode=mode_name,
+        **action_info)
+
+def parse_action(action):
     i3_complex_action = move_command = i3_action = mode = command = None
     action_text = action.text
     specific_action, = action.children
@@ -436,22 +459,15 @@ def parse_binding(ast, mode_name):
     else:
         raise ValueError(specific_action.expr_name)
 
-    option_list = options.text.split() + more_options.text.split()
-    release = '--release' in option_list
-
+    bind_types = get_bind_types()
     return dict(
-        key=key,
         command=command,
-        target_mode=mode,
-        type=bind_types[specific_action.expr_name],
         i3_action=i3_action,
         i3_complex_action=i3_complex_action,
-        action_text=action_text,
-        text=ast.text,
-        release=release,
         mode_target=mode,
-        mode=mode_name,
-        )
+        type=bind_types[specific_action.expr_name],
+        action_text=action_text
+    )
 
 
 def parse_key(string):
