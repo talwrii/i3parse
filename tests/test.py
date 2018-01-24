@@ -82,6 +82,12 @@ def test_comment():
     config_file = os.path.join(HERE, 'comment.config')
     output = run(['validate', config_file])
 
+def test_border():
+    config_file = os.path.join(HERE, 'bindborders.config')
+    run(['validate', config_file])
+    output = run(['bindings', config_file])
+    assert output.startswith('default $mod+n border normal')
+
 def test_dos():
     config_file = os.path.join(HERE, 'dos.config')
     output = run(['validate', config_file])

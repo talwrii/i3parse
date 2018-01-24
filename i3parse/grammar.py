@@ -60,7 +60,9 @@ empty_statement = space*
 bind_statement = ( "bindsym" / "bindcode" ) (space bind_option)?  space key space bind_action
 bind_option = "--release" / "--border" / "--whole-window" / "--exclude-titlebar"
 
-bind_action = exec_action / i3_toggle_fullscreen / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_modify_float / i3_workspace_command / i3_resize_action / scratch_show
+bind_action = exec_action / i3_toggle_fullscreen / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_modify_float / i3_workspace_command / i3_resize_action / scratch_show / border_action
+
+border_action = "border" space border_const
 
 key = word
 

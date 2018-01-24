@@ -331,6 +331,7 @@ def get_bind_types():
             exec_always='exec',
             exec_action='exec',
             i3_toggle_fullscreen='window',
+            border_action='appearance',
             mode_action='mode',
             focus_action='window',
             i3_action='window',
@@ -430,6 +431,8 @@ def parse_binding(ast, mode_name):
         i3_action = 'show_scratchpad'
     elif specific_action.expr_name == 'i3_toggle_fullscreen':
         i3_action = 'toggle_fullscreen'
+    elif specific_action.expr_name == 'border_action':
+        i3_action = 'change_borders'
     else:
         raise ValueError(specific_action.expr_name)
 
