@@ -1,4 +1,5 @@
 import os
+import json
 import subprocess
 import pytest
 
@@ -81,6 +82,24 @@ def test_new_windows():
 def test_comment():
     config_file = os.path.join(HERE, 'comment.config')
     output = run(['validate', config_file])
+
+
+def test_bind_options():
+    config_file = os.path.join(HERE, 'bindoptions.config')
+    run(['validate', config_file])
+    output = run(['bindings', '--json', config_file])
+    for line in output.splitlines():
+        data = json.loads(line)
+        key = data['key']
+        if key == 'a':
+            assert data['on_release']
+        elif key == 'b':
+            assert data['on_release']
+        elif key == 'c':
+            assert not data['on_release']
+        else:
+            raise ValueError(key)
+
 
 def test_border():
     config_file = os.path.join(HERE, 'bindborders.config')
