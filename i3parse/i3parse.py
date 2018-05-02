@@ -34,6 +34,16 @@ class NoConfigFileFound(Exception):
     def __str__(self):
         return '{}({!r})'.format(type(self).__name__, self.possibilities)
 
+class ParseError(Exception):
+    def __init__(self, line_number, text):
+        self.line_number = line_number
+        self.text = text
+
+    def __repr__(self):
+        return "ParseError({}, {!r})".format(self.line_number, self.text)
+
+    def __str__(self):
+        return "ParseError({}, {!r})".format(self.line_number, self.text)
 
 def default_config():
     possible_config_files = default_configs()
@@ -364,8 +374,6 @@ def get_modes(ast):
     else:
         return list(itertools.chain.from_iterable(get_modes(child) for child in ast.children))
 
-
-
 def get_bindings(ast, mode_name='default'):
     if ast.expr_name == 'mode_block':
         _, _, (mode_name_node,), _ = ast.children
@@ -379,8 +387,14 @@ def get_bindings(ast, mode_name='default'):
             bindings.extend(get_bindings(child, mode_name))
         return bindings
 
-
 def parse_binding(ast, mode_name):
+    try:
+        return _parse_binding(ast, mode_name)
+    except Exception as e:
+        line = ast.full_text[:ast.start].count("\n")
+        raise ParseError(line, ast.text) from e
+
+def _parse_binding(ast, mode_name):
     _, options, _, key_node, more_options, _, action = ast.children
     key = key_node.text
 

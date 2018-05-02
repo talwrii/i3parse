@@ -3,10 +3,10 @@ A functional but not feature-complete parser for [i3wm's](https://github.com/i3/
 
 # Installation
 ```
-pip install --upgrade git+https://github.com/talwrii/i3parse#egg=i3parse
+pip3 install --upgrade git+https://github.com/talwrii/i3parse#egg=i3parse
 ```
 
-Compatible with Python2 and Python3.
+Requires Python3 but can coexist on a machine with Python 2.
 
 # Usage
 ```
