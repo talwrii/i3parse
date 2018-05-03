@@ -10,3 +10,4 @@ venv
 .cache
 .ropeproject
 __pycache__
+.test-pass-commit
