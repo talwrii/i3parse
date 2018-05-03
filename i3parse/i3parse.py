@@ -16,24 +16,39 @@ import io
 import graphviz
 
 from . import grammar
+from . import combined_help
 
 LOGGER = logging.getLogger()
 
 print_func = print
 def print(*_, **__):
+    #pylint: disable=redefined-builtin
     raise Exception('Do not use print (see yield in run)')
 
 open_func = open
 def open(*_, **__):
+    #pylint: disable=redefined-builtin
     raise Exception('Do not use open. Use extended notation')
 
 class NoConfigFileFound(Exception):
     def __init__(self, possibilities):
+        Exception.__init__(self)
         self.possibilities = possibilities
 
     def __str__(self):
         return '{}({!r})'.format(type(self).__name__, self.possibilities)
 
+class ParseError(Exception):
+    def __init__(self, line_number, text):
+        Exception.__init__(self)
+        self.line_number = line_number
+        self.text = text
+
+    def __repr__(self):
+        return "ParseError({}, {!r})".format(self.line_number, self.text)
+
+    def __str__(self):
+        return "ParseError({}, {!r})".format(self.line_number, self.text)
 
 def default_config():
     possible_config_files = default_configs()
@@ -60,62 +75,63 @@ def config_option(parser, name='config'):
 def json_option(parser):
     parser.add_argument('--json', action='store_true', help='Output in machine readable json')
 
-class _HelpAction(argparse._HelpAction):
-    # https://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output
-    # author: grundic, Adaephon
-    # explicit: mit license
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        parser.print_help()
-
-        # retrieve subparsers from parser
-        subparsers_actions = [
-            action for action in parser._actions
-            if isinstance(action, argparse._SubParsersAction)]
-        # there will probably only be one subparser_action,
-        # but better save than sorry
-        for subparsers_action in subparsers_actions:
-            # get all subparsers and print help
-            for choice, subparser in subparsers_action.choices.items():
-                print_func(u'')
-                print_func(u"Subparser '{}'".format(choice))
-                print_func(subparser.format_help())
-
-        parser.exit()
-
 
 def build_parser():
     parser = argparse.ArgumentParser(description='Inspect your i3 configuration and answer questions', add_help=False)
-    parser.add_argument('--help', action=_HelpAction, help='help for help if you need some help')  # add custom help
+    parser.add_argument(
+        '--help',
+        action=combined_help.CombinedHelpAction, help='help for help if you need some help')  # add custom help
     parser.add_argument('--debug', action='store_true', help='Print debug output')
     parsers = parser.add_subparsers(dest='command')
 
     free = parsers.add_parser('free', help='Find free keys with certain properties')
-    free.add_argument('--mode', type=str, help='Show keys within this mode', default='default')
-    free.add_argument('--shift', action='store_true', help='Only return keys with shift', default=None)
-    free.add_argument('--no-shift', action='store_false', help='Only return keys without shift', default=None, dest='control')
-    free.add_argument('--control', action='store_true', help='Only return keys with control', default=None)
-    free.add_argument('--no-control', action='store_false', help='Only return keys without control', default=None, dest='control')
-    free.add_argument('--mod1', action='store_true', help='Only return keys with Mod1 (alt / meta)', default=None)
-    free.add_argument('--no-mod1', action='store_false', help='Only return keys without Mod1 (alt / meta)', default=None, dest='control')
+    free.add_argument(
+        '--mode',
+        type=str, help='Show keys within this mode', default='default')
+    free.add_argument(
+        '--shift',
+        action='store_true', help='Only return keys with shift', default=None)
+    free.add_argument(
+        '--no-shift',
+        action='store_false', help='Only return keys without shift', default=None, dest='control')
+    free.add_argument(
+        '--control',
+        action='store_true', help='Only return keys with control', default=None)
+    free.add_argument(
+        '--no-control',
+        action='store_false', help='Only return keys without control', default=None, dest='control')
+    free.add_argument(
+        '--mod1',
+        action='store_true', help='Only return keys with Mod1 (alt / meta)', default=None)
+    free.add_argument(
+        '--no-mod1',
+        action='store_false', help='Only return keys without Mod1 (alt / meta)', default=None, dest='control')
+    free.add_argument(
+        'letters',
+        type=str, nargs='?',
+        help='Try to return a binding with one of these letters. There are special values :letter: and :number:')
+
     config_option(free, name='--config')
-    free.add_argument('letters', type=str, nargs='?', help='Try to return a binding with one of these letters. There are special values :letter: and :number:')
 
     modes = parsers.add_parser('modes', help='Show the keybinding modes and how to traverse them')
     config_option(modes)
 
-    mode_graph = parsers.add_parser('mode-graph', help='Show the keybinding modes and how to traverse them')
-    config_option(mode_graph)
-    mode_graph.add_argument('--drop-key', '-d', help='Ignore this key in all modes', type=str, action='append')
-    mode_graph.add_argument('--unicode', '-u', action='store_true', default=False, help='Compress with unicode')
+    mode_graph_parser = parsers.add_parser('mode-graph', help='Show the keybinding modes and how to traverse them')
+    config_option(mode_graph_parser)
+    mode_graph_parser.add_argument('--drop-key', '-d', help='Ignore this key in all modes', type=str, action='append')
+    mode_graph_parser.add_argument('--unicode', '-u', action='store_true', default=False, help='Compress with unicode')
 
     validate_parser = parsers.add_parser('validate', help='Validate key-bindings file (check if it parses)')
     config_option(validate_parser)
 
     binding_parser = parsers.add_parser('bindings', help='Show bindings')
     config_option(binding_parser)
-    binding_parser.add_argument('--mode', '-m', type=str, help='Only should bindings for this mode')
-    binding_parser.add_argument('--type', '-t', type=str, choices=sorted(set(get_bind_types().values())), help='Only show bindings of this type')
+    binding_parser.add_argument(
+        '--mode', '-m',
+        type=str, help='Only should bindings for this mode')
+    binding_parser.add_argument(
+        '--type', '-t',
+        type=str, choices=sorted(set(get_bind_types().values())), help='Only show bindings of this type')
     json_option(binding_parser)
     return parser
 
@@ -172,7 +188,7 @@ def diacriticize_binding(s):
         if part.lower() == 'control':
             control = True
 
-    combining_s = u"\u1de4"
+    super_s = u"\u1de4"
     subscript_m = u'\u2098'
 
     output = key
@@ -232,84 +248,45 @@ def run(args=None):
             input_string = stream.read()
             ast = parse(input_string)
     elif args.command == 'free':
-        with extended_open(args.config) as stream:
-            input_string = stream.read()
-            ast = parse(input_string)
-
-        bindings = get_bindings(ast)
-        bindings = [binding for binding in bindings if binding['mode'] == args.mode]
-
-        characters = string_mod.ascii_lowercase + string_mod.punctuation + string_mod.digits
-        free_keys = [
-            parsed_key(c, mod=True, shift=shift, mod1=mod1, control=control)
-            for c in characters
-            for mod1 in (False, True)
-            for control in (False, True)
-            for shift in (False, True)
-        ]
-
-        if args.control is not None:
-            free_keys = [k for k in free_keys if k['control'] == args.control]
-
-        if args.shift is not None:
-            free_keys = [k for k in free_keys if k['shift'] == args.shift]
-
-        if args.mod1 is not None:
-            free_keys = [k for k in free_keys if k['mod1'] == args.mod1]
-
-        LETTER_SETS = dict(
-            letter=string_mod.ascii_lowercase,
-            digit=string_mod.digits,
-        )
-
-        order_by_letter = True
-        if args.letters and args.letters.startswith(':') and args.letters.endswith(':'):
-            letters = LETTER_SETS[args.letters.replace(':', '')]
-            order_by_letter = False
-        else:
-            letters = args.letters
-
-        if letters:
-            free_keys = [k for k in free_keys if k['key'] in letters]
-
-        for binding in bindings:
-            key = parse_key(binding['key'])
-            if key in free_keys:
-                free_keys.remove(key)
-
-        free_keys.sort(key=key_sorter(letters, order_by_letter))
-
-        for key in free_keys:
-            yield format_key(key)
-
+        yield from free_command(args)
     elif args.command == 'bindings':
-        with extended_open(args.config) as stream:
-            input_string = stream.read()
-            ast = parse(input_string)
-
-        # dump_tree(ast)
-
-        bindings = get_bindings(ast)
-        sort_key = lambda k: (k['mode'], k['key'])
-        for binding in sorted(bindings, key=sort_key):
-            if args.mode and args.mode != binding['mode']:
-                continue
-
-            if args.type is not None:
-                if binding['type'] != args.type:
-                    continue
-
-            if args.json:
-                workspace = (binding.get('i3_complex_action') or dict()).get('workspace')
-                data = dict(mode=binding['mode'], key=binding['key'], text=binding['action_text'], action_type=binding['type'], on_release=binding['release'])
-                if workspace is not None:
-                    data['workspace'] = workspace
-                yield json.dumps(data)
-            else:
-                yield ' '.join([binding['mode'], binding['key'], binding['action_text']])
-
+        yield from bindings_command(args)
     else:
         raise ValueError(args.bindings)
+
+
+def bindings_command(args):
+    with extended_open(args.config) as stream:
+        input_string = stream.read()
+        ast = parse(input_string)
+
+    # dump_tree(ast)
+
+    bindings = get_bindings(ast)
+    sort_key = lambda k: (k['mode'], k['key'])
+    for binding in sorted(bindings, key=sort_key):
+        if args.mode and args.mode != binding['mode']:
+            continue
+
+        if args.type is not None:
+            if binding['type'] != args.type:
+                continue
+
+        if args.json:
+            workspace = (binding.get('i3_complex_action') or dict()).get('workspace')
+            data = dict(
+                mode=binding['mode'],
+                key=binding['key'],
+                text=binding['action_text'],
+                action_type=binding['type'],
+                on_release=binding['release'],
+            )
+            if workspace is not None:
+                data['workspace'] = workspace
+            yield json.dumps(data)
+        else:
+            yield ' '.join([binding['mode'], binding['key'], binding['action_text']])
+
 
 
 def mac2unix(x):
@@ -325,6 +302,7 @@ def parse(input_string):
 
 _get_bind_types = None
 def get_bind_types():
+    #pylint: disable=global-statement
     global _get_bind_types
     if _get_bind_types is None:
         ACTION_TYPES = dict(
@@ -360,12 +338,9 @@ def get_modes(ast):
             _, string_node, _ = name_node
             return [string_node.text]
         else:
-            print_func('type', name_node.expr_name)
             raise ValueError(name_node.expr_name)
     else:
         return list(itertools.chain.from_iterable(get_modes(child) for child in ast.children))
-
-
 
 def get_bindings(ast, mode_name='default'):
     if ast.expr_name == 'mode_block':
@@ -381,22 +356,53 @@ def get_bindings(ast, mode_name='default'):
         return bindings
 
 def parse_binding(ast, mode_name):
-    bind_types = get_bind_types()
+    try:
+        return _parse_binding(ast, mode_name)
+    except Exception as e:
+        line = ast.full_text[:ast.start].count("\n")
+        raise ParseError(line, ast.text) from e
+
+def _parse_binding(ast, mode_name):
     _, options, _, key_node, more_options, _, action = ast.children
     key = key_node.text
-    i3_complex_action = move_command = i3_action = mode = command = None
+
+
+    option_list = options.text.split() + more_options.text.split()
+    release = '--release' in option_list
+
+    next_action = action
+    action_infos = []
+    while len(next_action.children) != 1:
+        print_func('children', action.children)
+        action, _, _, _, next_action = action.children
+        action_infos.append(parse_action(action))
+
+    action_infos.append(parse_action(next_action.children[0]))
+
+    action_info, = action_infos
+
+    return dict(
+        key=key,
+        text=ast.text,
+        release=release,
+        mode=mode_name,
+        **action_info)
+
+def parse_action(action):
+    #pylint: disable=too-many-branches
+    i3_complex_action = i3_action = mode = command = None
     action_text = action.text
     specific_action, = action.children
     if specific_action.expr_name == 'exec_action':
         _exec, bash_exec = specific_action
         command = bash_exec.text
     elif specific_action.expr_name == 'i3_move_action':
-        move_command = 'blah'
+        pass
     elif specific_action.expr_name == 'i3_split_action':
         _, _, direction = specific_action
         i3_complex_action = dict(action='split', direction=direction.text)
     elif specific_action.expr_name == 'mode_action':
-        _, _, ((_,  string , _),) = specific_action.children
+        _, _, ((_, string, _),) = specific_action.children
         mode = string.text
     elif specific_action.expr_name == 'focus_action':
         _, _, output, direction = specific_action.children
@@ -409,22 +415,7 @@ def parse_binding(ast, mode_name):
         _, _, layout = specific_action.children
         i3_complex_action = dict(action='layout', layout=layout.text)
     elif specific_action.expr_name == 'i3_workspace_command':
-        _, _, workspace = specific_action.children
-        workspace_target, = workspace.children
-        workspace_target_name = workspace_name = None
-        if workspace_target.expr_name == 'quoted_string':
-            _, workspace_name, _ = workspace_target.children
-            workspace_name = workspace_name.text
-        elif workspace_target.expr_name == 'number':
-            workspace_name = int(workspace_target.text)
-        elif workspace_target.expr_name == 'workspace_sentinels':
-            workspace_target_name = workspace_target.text
-        else:
-            raise ValueError(workspace_target.expr_name)
-        i3_complex_action = dict(
-            action='workspace',
-            workspace=workspace_name,
-            workspace_target=workspace_target_name)
+        i3_complex_action = parse_i3_workspace_command(specific_action)
     elif specific_action.expr_name == 'i3_resize_action':
         i3_complex_action = dict(action='resize')
     elif specific_action.expr_name == 'scratch_show':
@@ -436,22 +427,85 @@ def parse_binding(ast, mode_name):
     else:
         raise ValueError(specific_action.expr_name)
 
-    option_list = options.text.split() + more_options.text.split()
-    release = '--release' in option_list
-
+    bind_types = get_bind_types()
     return dict(
-        key=key,
         command=command,
-        target_mode=mode,
-        type=bind_types[specific_action.expr_name],
         i3_action=i3_action,
         i3_complex_action=i3_complex_action,
-        action_text=action_text,
-        text=ast.text,
-        release=release,
         mode_target=mode,
-        mode=mode_name,
-        )
+        type=bind_types[specific_action.expr_name],
+        action_text=action_text
+    )
+
+def parse_i3_workspace_command(specific_action):
+    _, _, workspace = specific_action.children
+    workspace_target, = workspace.children
+    workspace_target_name = workspace_name = None
+    if workspace_target.expr_name == 'quoted_string':
+        _, workspace_name, _ = workspace_target.children
+        workspace_name = workspace_name.text
+    elif workspace_target.expr_name == 'number':
+        workspace_name = int(workspace_target.text)
+    elif workspace_target.expr_name == 'workspace_sentinels':
+        workspace_target_name = workspace_target.text
+    else:
+        raise ValueError(workspace_target.expr_name)
+    return dict(
+        action='workspace',
+        workspace=workspace_name,
+        workspace_target=workspace_target_name)
+
+def free_command(args):
+    with extended_open(args.config) as stream:
+        input_string = stream.read()
+        ast = parse(input_string)
+
+    bindings = get_bindings(ast)
+    bindings = [binding for binding in bindings if binding['mode'] == args.mode]
+
+    characters = string_mod.ascii_lowercase + string_mod.punctuation + string_mod.digits
+    free_keys = [
+        parsed_key(c, mod=True, shift=shift, mod1=mod1, control=control)
+        for c in characters
+        for mod1 in (False, True)
+        for control in (False, True)
+        for shift in (False, True)
+    ]
+
+    if args.control is not None:
+        free_keys = [k for k in free_keys if k['control'] == args.control]
+
+    if args.shift is not None:
+        free_keys = [k for k in free_keys if k['shift'] == args.shift]
+
+    if args.mod1 is not None:
+        free_keys = [k for k in free_keys if k['mod1'] == args.mod1]
+
+    LETTER_SETS = dict(
+        letter=string_mod.ascii_lowercase,
+        digit=string_mod.digits,
+    )
+
+    order_by_letter = True
+    if args.letters and args.letters.startswith(':') and args.letters.endswith(':'):
+        letters = LETTER_SETS[args.letters.replace(':', '')]
+        order_by_letter = False
+    else:
+        letters = args.letters
+
+    if letters:
+        free_keys = [k for k in free_keys if k['key'] in letters]
+
+    for binding in bindings:
+        key = parse_key(binding['key'])
+        if key in free_keys:
+            free_keys.remove(key)
+
+    free_keys.sort(key=key_sorter(letters, order_by_letter))
+
+    for key in free_keys:
+        yield format_key(key)
+
 
 
 def parse_key(string):
@@ -467,10 +521,10 @@ def parse_key(string):
     control = mod1 = shift = mod = False
     for modifier in parts[:-1]:
         modifier = modifier.lower()
-        mod1 |=  modifier == 'mod1'
-        shift |=  modifier == 'shift'
-        mod |=  modifier == '$mod'
-        control |=  modifier == 'control'
+        mod1 |= modifier == 'mod1'
+        shift |= modifier == 'shift'
+        mod |= modifier == '$mod'
+        control |= modifier == 'control'
 
     return parsed_key(key, mod1=mod1, shift=shift, mod=mod, control=control)
 
