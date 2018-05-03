@@ -16,3 +16,5 @@ rm -rf venv
 virtualenv -p python3 venv
 venv/bin/pip install .
 venv/bin/i3parse --help > /dev/null
+
+./gitversion > .test-pass-commit
