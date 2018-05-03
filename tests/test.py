@@ -79,6 +79,14 @@ def test_new_windows():
     config_file = os.path.join(HERE, 'new_float.config')
     output = run(['validate', config_file])
 
+
+def test_no_quote():
+    # This is takine a while to get implemented
+    # leave this disableed for now
+    config_file = os.path.join(HERE, 'mode_no_quote.config')
+    output = run(['bindings', config_file])
+
+
 def test_comment():
     config_file = os.path.join(HERE, 'comment.config')
     output = run(['validate', config_file])
