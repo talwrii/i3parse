@@ -402,7 +402,11 @@ def parse_action(action):
         _, _, direction = specific_action
         i3_complex_action = dict(action='split', direction=direction.text)
     elif specific_action.expr_name == 'mode_action':
-        _, _, ((_, string, _),) = specific_action.children
+        _, _, (string_node,) = specific_action.children
+        try:
+            _, string, _  = string_node
+        except ValueError:
+            string = string_node
         mode = string.text
     elif specific_action.expr_name == 'focus_action':
         _, _, output, direction = specific_action.children
