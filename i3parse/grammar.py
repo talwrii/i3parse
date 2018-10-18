@@ -86,7 +86,7 @@ focus_location = "parent" / "child"
 direction = "left" / "right" / "up" / "down"
 i3_action = "kill" / "fullscreen" / "reload" / "restart" / "exit"
 i3_split_action = "split" space split_direction
-split_direction = "h" / "v"
+split_direction = "vertical" / "horizontal" / "h" / "v"
 i3_resize_action = "resize" space ( "shrink" / "grow" ) space ("width" / "height") space measurement
 
 exec_action = "exec " exec_bash
