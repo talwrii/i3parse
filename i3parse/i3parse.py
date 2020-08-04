@@ -459,6 +459,9 @@ def parse_i3_workspace_command(specific_action):
         workspace_name = int(workspace_target.text)
     elif workspace_target.expr_name == 'workspace_sentinels':
         workspace_target_name = workspace_target.text
+    elif workspace_target.expr_name == 'workspace_number':
+        _, _, workspace_name_raw = workspace_target.children
+        workspace_name = int(workspace_name_raw.text)
     else:
         raise ValueError(workspace_target.expr_name)
     return dict(

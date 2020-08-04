@@ -86,10 +86,11 @@ scratch_hide = "scratchpad" space "hide"
 
 status_command = "status_command" space any_chars
 i3_move_action = "move" (space ("container" / "window" / "workspace") ) ? ( space  "to" ) ? ( space ( "output" / "mark" / "workspace" ) ) ? space move_target
-move_target = direction / "scratchpad" / number
+move_target = workspace_number / direction / "scratchpad" / number
 i3_workspace_command = "workspace" space workspace_const
-workspace_const = (quoted_string /  workspace_sentinels / variable_name / number)
+workspace_const = (workspace_number / quoted_string / workspace_sentinels / variable_name / number)
 workspace_sentinels = "back_and_forth"
+workspace_number = "number" space number
 i3_modify_float = "floating" space ( "enable" / "toggle" / "disable") (space "border" space "pixel" space number)?
 i3_modify_stick = "sticky" space ( "enable" / "toggle" / "disable") 
 i3_layout_action = "layout" space layout
