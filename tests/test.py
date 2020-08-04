@@ -13,8 +13,8 @@ HERE = os.path.dirname(__file__)
 def test_files():
     with mock.patch('os.environ', dict(HOME='/home/user')):
         assert i3parse.i3parse.default_configs() == [
-            '/home/user/.i3/config', '/home/user/.config/i3/config',
-            '/etc/i3/config', '/etc/xdg/i3/config']
+            '/home/user/.config/i3/config', '/home/user/.i3/config',
+            '/etc/xdg/i3/config', '/etc/i3/config']
 
     with mock.patch('os.environ', dict(
             HOME='/home/user',
@@ -22,7 +22,7 @@ def test_files():
             XDG_CONFIG_DIRS='/xdg_dirs')):
         assert i3parse.i3parse.default_configs() == [
             '/home/user/.i3/config', '/xdg_home/i3/config',
-            '/etc/i3/config', '/xdg_dirs/i3/config']
+            '/xdg_dirs/i3/config', '/etc/i3/config']
 
 def test_run():
     subprocess.check_output(["i3parse", "--help"])

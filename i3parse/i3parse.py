@@ -63,11 +63,12 @@ def default_configs():
     xdg_config_dirs = os.environ.get('XDG_CONFIG_DIRS', '/etc/xdg')
 
     # See Files section in man i3
-    return  [
-        os.path.join(os.environ.get('HOME', '/'), '.i3/config'),
+    return [
         os.path.join(xdg_config_home, 'i3/config'),
+        os.path.join(os.environ.get('HOME', '/'), '.i3/config'),
+        os.path.join(xdg_config_dirs, 'i3/config'),
         '/etc/i3/config',
-        os.path.join(xdg_config_dirs, 'i3/config')]
+    ]
 
 def config_option(parser, name='config'):
     parser.add_argument(name, type=str, help='', nargs='?', default=default_config())
