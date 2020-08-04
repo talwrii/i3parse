@@ -71,7 +71,7 @@ bind_statement = ( "bindsym" / "bindcode" ) (space bind_option)*  space key (spa
 bind_option = "--release" / "--border" / "--whole-window" / "--exclude-titlebar"
 
 bind_actions = (bind_action space ?  ("," / ";") space ? bind_actions) / bind_action
-bind_action = exec_action / i3_toggle_fullscreen / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_modify_float / i3_workspace_command / i3_resize_action / scratch_show / border_action / gaps_action
+bind_action = exec_action / i3_toggle_fullscreen / mode_action / focus_action / i3_action / i3_move_action / i3_split_action / i3_layout_action / i3_modify_float / i3_modify_stick / i3_workspace_command / i3_resize_action / scratch_show / border_action / gaps_action
 
 border_action = "border" space border_const
 
@@ -91,6 +91,7 @@ i3_workspace_command = "workspace" space workspace_const
 workspace_const = (quoted_string /  workspace_sentinels / variable_name / number)
 workspace_sentinels = "back_and_forth"
 i3_modify_float = "floating" space ( "enable" / "toggle" / "disable") (space "border" space "pixel" space number)?
+i3_modify_stick = "sticky" space ( "enable" / "toggle" / "disable") 
 i3_layout_action = "layout" space layout
 layout = "stacking" / "tabbed" / "default" / ( "toggle" space "split" )
 focus_action = "focus" ( space "output" ) ? space (direction / focus_mode / focus_location)

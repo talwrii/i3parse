@@ -319,6 +319,7 @@ def get_bind_types():
             i3_split_action='window',
             i3_layout_action='window',
             i3_modify_float='window',
+            i3_modify_stick='window',
             i3_workspace_command='workspace',
             i3_resize_action='window',
             scratch_show='window',
@@ -417,6 +418,8 @@ def parse_action(action):
         i3_action = specific_action.text
     elif specific_action.expr_name == 'i3_modify_float':
         i3_action = 'modify_float'
+    elif specific_action.expr_name == 'i3_modify_stick':
+        i3_action = 'modify_stick'
     elif specific_action.expr_name == 'i3_layout_action':
         _, _, layout = specific_action.children
         i3_complex_action = dict(action='layout', layout=layout.text)
