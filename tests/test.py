@@ -115,6 +115,10 @@ def test_border():
     output = run(['bindings', config_file])
     assert output.startswith('default $mod+n border normal')
 
+def test_gaps():
+    config_file = os.path.join(HERE, 'gaps.config')
+    run(['validate', config_file])
+
 def test_dos():
     config_file = os.path.join(HERE, 'dos.config')
     output = run(['validate', config_file])
