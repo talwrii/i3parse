@@ -17,7 +17,7 @@ colors_block = "colors" space quote_block
 lines = line*
 line = comment / statement
 statement = ( space * ) statement_no_line newline
-statement_no_line = bind_statement / geometry_statement / mouse_warping_statement / workspace_layout / workspace_statement / yes_no_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_always / exec_action / window_event / assign_statement / no_focus_statement / orientation_statement / new_float_border / new_window_border / hide_edge_borders_statement / set_from_resource / gaps_statement / smart_gaps_statement / smart_borders_statement / empty_statement
+statement_no_line = bind_statement / geometry_statement / mouse_warping_statement / workspace_layout / workspace_statement / yes_no_statement / variable_statement / set_statement / status_command / font_statement / float_key_statement / workspace_buttons / popup_fullscreen_action / exec_always / exec_action / window_event / assign_statement / no_focus_statement / orientation_statement / new_float_border / new_window_border / hide_edge_borders_statement / set_from_resource / gaps_statement / smart_gaps_statement / smart_borders_statement / empty_statement
 
 workspace_statement = "workspace" space workspace_const space workspace_option
 workspace_option = workspace_output / gaps_statement 
@@ -116,13 +116,13 @@ newline = ~"\n*"
 yes_no = "yes" / "no"
 space = ~"[ \t]+"
 set_statement = "set " ( word / variable ) " " rest
+variable_statement = variable_name "." dotted_name " " rest
 set_from_resource = "set_from_resource" space variable space dotted_name space rest
 word = ~"[^() \n]+"
 rest = ~"[^\n]+"
 dotted_name =  ( variable_name "." dotted_name ) / variable_name
 variable_name = ~"[a-zA-Z_][a-zA-Z_0-9]*"
 variable = "$" variable_name
-
 
 quoted_variable = quote variable quote
 
