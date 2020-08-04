@@ -63,11 +63,12 @@ def default_configs():
     xdg_config_dirs = os.environ.get('XDG_CONFIG_DIRS', '/etc/xdg')
 
     # See Files section in man i3
-    return  [
-        os.path.join(os.environ.get('HOME', '/'), '.i3/config'),
+    return [
         os.path.join(xdg_config_home, 'i3/config'),
+        os.path.join(os.environ.get('HOME', '/'), '.i3/config'),
+        os.path.join(xdg_config_dirs, 'i3/config'),
         '/etc/i3/config',
-        os.path.join(xdg_config_dirs, 'i3/config')]
+    ]
 
 def config_option(parser, name='config'):
     parser.add_argument(name, type=str, help='', nargs='?', default=default_config())
@@ -310,6 +311,7 @@ def get_bind_types():
             exec_action='exec',
             i3_toggle_fullscreen='window',
             border_action='appearance',
+            gaps_action='appearance',
             mode_action='mode',
             focus_action='window',
             i3_action='window',
@@ -317,6 +319,7 @@ def get_bind_types():
             i3_split_action='window',
             i3_layout_action='window',
             i3_modify_float='window',
+            i3_modify_stick='window',
             i3_workspace_command='workspace',
             i3_resize_action='window',
             scratch_show='window',
@@ -415,6 +418,8 @@ def parse_action(action):
         i3_action = specific_action.text
     elif specific_action.expr_name == 'i3_modify_float':
         i3_action = 'modify_float'
+    elif specific_action.expr_name == 'i3_modify_stick':
+        i3_action = 'modify_stick'
     elif specific_action.expr_name == 'i3_layout_action':
         _, _, layout = specific_action.children
         i3_complex_action = dict(action='layout', layout=layout.text)
@@ -428,6 +433,8 @@ def parse_action(action):
         i3_action = 'toggle_fullscreen'
     elif specific_action.expr_name == 'border_action':
         i3_action = 'change_borders'
+    elif specific_action.expr_name == 'gaps_action':
+        i3_action = 'change_gaps'
     else:
         raise ValueError(specific_action.expr_name)
 
@@ -452,6 +459,9 @@ def parse_i3_workspace_command(specific_action):
         workspace_name = int(workspace_target.text)
     elif workspace_target.expr_name == 'workspace_sentinels':
         workspace_target_name = workspace_target.text
+    elif workspace_target.expr_name == 'workspace_number':
+        _, _, workspace_name_raw = workspace_target.children
+        workspace_name = int(workspace_name_raw.text)
     else:
         raise ValueError(workspace_target.expr_name)
     return dict(
