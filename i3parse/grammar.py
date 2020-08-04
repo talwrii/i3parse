@@ -117,12 +117,14 @@ yes_no = "yes" / "no"
 space = ~"[ \t]+"
 set_statement = "set " ( word / variable ) " " rest
 variable_statement = variable_name "." dotted_name " " rest
-set_from_resource = "set_from_resource" space variable space dotted_name space rest
+set_from_resource = "set_from_resource" space variable space resource_value space rest
+resource_value = dotted_name / hex_color
 word = ~"[^() \n]+"
 rest = ~"[^\n]+"
 dotted_name =  ( variable_name "." dotted_name ) / variable_name
 variable_name = ~"[a-zA-Z_][a-zA-Z_0-9]*"
 variable = "$" variable_name
+hex_color = ~'\#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})'
 
 quoted_variable = quote variable quote
 
